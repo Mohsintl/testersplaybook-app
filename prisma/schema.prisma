@@ -1,14 +1,227 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../lib/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+
+enum Role {
+  OWNER
+  CONTRIBUTOR
+}
+
+enum TestCaseType {
+  MANUAL
+  AUTOMATION
+}
+
+enum TestResultStatus {
+  PASSED
+  FAILED
+  BLOCKED
+}
+
+enum BugStatus {
+  OPEN
+  CLOSED
+}
+
+enum BugSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BugPriority {
+  P0
+  P1
+  P2
+  P3
+}
+
+enum AutomationStatus {
+  AUTOMATED
+  FLAKY
+  NOT_AUTOMATED
+}
+
+
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  ownedProjects    Project[]     @relation("ProjectOwner")
+  projectMembers   ProjectMember[]
+  testRuns         TestRun[]
+  createdBugs      Bug[]         @relation("BugCreator")
+  createdInvitations Invitation[] @relation("InvitationCreator")
+
+  @@map("users")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  owner         User           @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members       ProjectMember[]
+  modules       Module[]
+  testCases     TestCase[]
+  testRuns      TestRun[]
+  bugs          Bug[]
+  invitations   Invitation[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String
+  role      Role     @default(CONTRIBUTOR)
+  joinedAt  DateTime @default(now())
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+  @@map("project_members")
+}
+
+model Module {
+  id        String   @id @default(cuid())
+  name      String
+  projectId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  testCases TestCase[]
+
+  @@map("modules")
+}
+
+model TestCase {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  steps       Json
+  expected    String
+  tags        String[]
+  type        TestCaseType  @default(MANUAL)
+  automationRef AutomationRef?
+  projectId   String
+  moduleId    String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  module    Module?     @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  results   TestResult[]
+  bugs      Bug[]
+
+  @@map("test_cases")
+}
+
+model TestRun {
+  id        String   @id @default(cuid())
+  name      String
+  projectId String
+  userId    String
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+
+  // Relations
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  results TestResult[]
+  bugs    Bug[]
+
+  @@map("test_runs")
+}
+
+model TestResult {
+  id          String           @id @default(cuid())
+  status      TestResultStatus
+  notes       String?
+  testCaseId  String
+  testRunId   String
+  createdAt   DateTime         @default(now())
+
+  // Relations
+  testCase TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+  testRun  TestRun  @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+
+  @@unique([testCaseId, testRunId])
+  @@map("test_results")
+}
+
+model Bug {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      BugStatus  @default(OPEN)
+  severity    BugSeverity?
+  priority    BugPriority?
+  testCaseId  String?
+  testRunId   String?
+  projectId   String
+  creatorId   String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  testCase TestCase? @relation(fields: [testCaseId], references: [id], onDelete: SetNull)
+  testRun  TestRun?  @relation(fields: [testRunId], references: [id], onDelete: SetNull)
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator  User      @relation("BugCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@map("bugs")
+}
+
+model Invitation {
+  id        String   @id @default(cuid())
+  email     String
+  role      Role     @default(CONTRIBUTOR)
+  projectId String
+  creatorId String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creator User    @relation("InvitationCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@unique([email, projectId])
+  @@map("invitations")
+}
+
+model AutomationRef {
+  id         String   @id @default(cuid())
+  testCaseId String   @unique
+  repoUrl    String
+  filePath   String
+  testName   String
+  status AutomationStatus @default(NOT_AUTOMATED)
+  createdAt  DateTime @default(now())
+
+  testCase TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+
+  @@map("automation_refs")
 }
