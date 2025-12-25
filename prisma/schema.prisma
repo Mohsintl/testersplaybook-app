@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum Role {
   OWNER
   CONTRIBUTOR
@@ -49,26 +48,26 @@ enum AutomationStatus {
   NOT_AUTOMATED
 }
 
-
-
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  image     String? 
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
   emailVerified DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // 🔐 NextAuth relations (REQUIRED)
   accounts Account[]
   sessions Session[]
 
   // Relations
-  ownedProjects    Project[]     @relation("ProjectOwner")
-  projectMembers   ProjectMember[]
-  testRuns         TestRun[]
-  createdBugs      Bug[]         @relation("BugCreator")
+  ownedProjects  Project[]       @relation("ProjectOwner")
+  projectMembers ProjectMember[]
+  testRuns       TestRun[]
+  aiUsages       AIUsage[]
+
+  createdBugs        Bug[]        @relation("BugCreator")
   createdInvitations Invitation[] @relation("InvitationCreator")
 
   @@map("users")
@@ -83,13 +82,13 @@ model Project {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  owner         User           @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members       ProjectMember[]
-  modules       Module[]
-  testCases     TestCase[]
-  testRuns      TestRun[]
-  bugs          Bug[]
-  invitations   Invitation[]
+  owner       User            @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     ProjectMember[]
+  modules     Module[]
+  testCases   TestCase[]
+  testRuns    TestRun[]
+  bugs        Bug[]
+  invitations Invitation[]
 
   @@map("projects")
 }
@@ -124,34 +123,34 @@ model Module {
 }
 
 model TestCase {
-  id          String        @id @default(cuid())
-  title       String
-  description String?
-  steps       Json
-  expected    String
-  tags        String[]
-  type        TestCaseType  @default(MANUAL)
+  id            String         @id @default(cuid())
+  title         String
+  description   String?
+  steps         Json
+  expected      String
+  tags          String[]
+  type          TestCaseType   @default(MANUAL)
   automationRef AutomationRef?
-  projectId   String
-  moduleId    String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  projectId     String
+  moduleId      String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   // Relations
-  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  module    Module?     @relation(fields: [moduleId], references: [id], onDelete: SetNull)
-  results   TestResult[]
-  bugs      Bug[]
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  module  Module?      @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  results TestResult[]
+  bugs    Bug[]
 
   @@map("test_cases")
 }
 
 model TestRun {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
   projectId String
   userId    String
-  startedAt DateTime @default(now())
+  startedAt DateTime  @default(now())
   endedAt   DateTime?
 
   // Relations
@@ -164,12 +163,12 @@ model TestRun {
 }
 
 model TestResult {
-  id          String           @id @default(cuid())
-  status      TestResultStatus
-  notes       String?
-  testCaseId  String
-  testRunId   String
-  createdAt   DateTime         @default(now())
+  id         String           @id @default(cuid())
+  status     TestResultStatus
+  notes      String?
+  testCaseId String
+  testRunId  String
+  createdAt  DateTime         @default(now())
 
   // Relations
   testCase TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
@@ -180,18 +179,18 @@ model TestResult {
 }
 
 model Bug {
-  id          String     @id @default(cuid())
+  id          String       @id @default(cuid())
   title       String
   description String?
-  status      BugStatus  @default(OPEN)
+  status      BugStatus    @default(OPEN)
   severity    BugSeverity?
   priority    BugPriority?
   testCaseId  String?
   testRunId   String?
   projectId   String
   creatorId   String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
   // Relations
   testCase TestCase? @relation(fields: [testCaseId], references: [id], onDelete: SetNull)
@@ -220,13 +219,13 @@ model Invitation {
 }
 
 model AutomationRef {
-  id         String   @id @default(cuid())
-  testCaseId String   @unique
+  id         String           @id @default(cuid())
+  testCaseId String           @unique
   repoUrl    String
   filePath   String
   testName   String
-  status AutomationStatus @default(NOT_AUTOMATED)
-  createdAt  DateTime @default(now())
+  status     AutomationStatus @default(NOT_AUTOMATED)
+  createdAt  DateTime         @default(now())
 
   testCase TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
 
@@ -271,4 +270,15 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+model AIUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String // "improve" | "generate" | "analyze"
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, action, createdAt])
 }
