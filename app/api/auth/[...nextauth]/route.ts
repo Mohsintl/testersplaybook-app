@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
