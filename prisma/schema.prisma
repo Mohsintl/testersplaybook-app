@@ -65,7 +65,7 @@ model User {
   ownedProjects  Project[]       @relation("ProjectOwner")
   projectMembers ProjectMember[]
   testRuns       TestRun[]
-  aiUsages       AIUsage[]
+  aiUsage        AIUsage[]
 
   createdBugs        Bug[]        @relation("BugCreator")
   createdInvitations Invitation[] @relation("InvitationCreator")

@@ -1,16 +1,18 @@
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import TestCaseClient from "./TestCaseClient";
 
 export default async function TestCaseDetailPage({
   params,
 }: {
-  params: Promise<{
+  params: {
     projectId: string;
     moduleId: string;
     testCaseId: string;
-  }>;
+  };
 }) {
+  // ✅ MUST await params
   const { projectId, moduleId, testCaseId } = await params;
 
   const session = await getAuthSession();
@@ -35,37 +37,15 @@ export default async function TestCaseDetailPage({
   }
 
   return (
-    <main style={{ padding: "24px" }}>
-      <h1 style={{ fontSize: "22px", fontWeight: 600 }}>
-        {testCase.title}
-      </h1>
-
-      <p style={{ marginTop: "8px", color: "#666" }}>
-        Project: {testCase.project.name}
-      </p>
-      <p style={{ marginTop: "4px", color: "#666" }}>
-        Module: {testCase.module?.name}
-      </p>
-
-      <h2 style={{ marginTop: "24px", fontSize: "18px" }}>
-        Steps
-      </h2>
-
-      <ol style={{ marginTop: "8px" }}>
-        {(testCase.steps as string[]).map((step, index) => (
-          <li key={index} style={{ marginBottom: "6px" }}>
-            {step}
-          </li>
-        ))}
-      </ol>
-
-      <h2 style={{ marginTop: "24px", fontSize: "18px" }}>
-        Expected Result
-      </h2>
-
-      <p style={{ marginTop: "8px" }}>
-        {testCase.expected}
-      </p>
-    </main>
+    <TestCaseClient
+      testCase={{
+        id: testCase.id,
+        title: testCase.title,
+        steps: testCase.steps as string[],
+        expected: testCase.expected,
+        projectName: testCase.project.name,
+        moduleName: testCase.module?.name ?? "",
+      }}
+    />
   );
 }
