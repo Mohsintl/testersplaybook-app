@@ -8,7 +8,7 @@ export async function checkAndRecordAIUsage(
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const usedToday = await prisma.AIUsage.count({
+  const usedToday = await prisma.aIUsage.count({
     where: {
       userId,
       action,
@@ -24,7 +24,7 @@ export async function checkAndRecordAIUsage(
     );
   }
 
-  await prisma.AIUsage.create({
+  await prisma.aIUsage.create({
     data: {
       userId,
       action,
