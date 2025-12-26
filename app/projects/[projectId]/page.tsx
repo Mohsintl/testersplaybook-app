@@ -2,6 +2,7 @@ import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import CreateModuleForm from "./CreateModuleForm";
+import ModuleList from "./ModuleList";
 
 
 export default async function ProjectPage({
@@ -43,26 +44,10 @@ export default async function ProjectPage({
       <h2 style={{ marginTop: "24px", fontSize: "18px" }}>
         Modules
       </h2>
-      <h2 style={{ marginTop: "24px", fontSize: "18px" }}>
-  Modules
-</h2>
 
-<CreateModuleForm projectId={projectId} />
+      <CreateModuleForm projectId={projectId} />
 
-
-      {project.modules.length === 0 && (
-        <p style={{ marginTop: "12px" }}>No modules yet.</p>
-      )}
-
-      <ul style={{ marginTop: "12px" }}>
-        {project.modules.map((module) => (
-          <li key={module.id} style={{ marginBottom: "8px" }}>
-             <a href={`/projects/${projectId}/modules/${module.id}`}>
-    {module.name}
-  </a>
-          </li>
-        ))}
-      </ul>
+      <ModuleList modules={project.modules} projectId={projectId} />
     </main>
   );
 }

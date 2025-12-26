@@ -8,6 +8,7 @@ export default function CreateModuleForm({
   projectId: string;
 }) {
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +22,7 @@ export default function CreateModuleForm({
     const res = await fetch(`/api/projects/${projectId}/modules`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, description }),
     });
 
     if (!res.ok) {
@@ -41,6 +42,12 @@ export default function CreateModuleForm({
         onChange={(e) => setName(e.target.value)}
         placeholder="Module name"
         style={{ padding: "8px", width: "240px" }}
+      />
+      <input
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Module description"
+        style={{ padding: "8px", width: "240px", marginLeft: "8px" }}
       />
 
       <button

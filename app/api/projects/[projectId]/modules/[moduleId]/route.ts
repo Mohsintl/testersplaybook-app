@@ -5,11 +5,11 @@ import { getAuthSession } from "@/lib/auth";
 import { getProjectMember } from "@/lib/project-access";
 import prisma from "@/lib/prisma";
 
-export async function POST(
+export async function DELETE(
   request: NextRequest,
-  context: { params: Promise<{ projectId: string }> }
+  context: { params: Promise<{ projectId: string; moduleId: string }> }
 ) {
-  const { projectId } = await context.params; // ✅ AWAIT params
+  const { projectId, moduleId } = await context.params;
 
   const session = await getAuthSession();
   if (!session?.user?.id) {
@@ -21,18 +21,17 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { name, description } = await request.json();
-  if (!name) {
-    return NextResponse.json({ error: "Module name required" }, { status: 400 });
+  try {
+    await prisma.module.delete({
+      where: { id: moduleId },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Delete module failed:", error);
+    return NextResponse.json(
+      { error: "Failed to delete module" },
+      { status: 500 }
+    );
   }
-
-  const module = await prisma.module.create({
-    data: {
-      name,
-      description: description || "",
-      projectId,
-    },
-  });
-
-  return NextResponse.json(module, { status: 201 });
 }

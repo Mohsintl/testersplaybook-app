@@ -14,6 +14,14 @@ type Props = {
 };
 
 export default function TestCaseClient({ testCase }: Props) {
+  const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const [title, setTitle] = useState(testCase.title);
+  const [steps, setSteps] = useState(testCase.steps.join("\n"));
+  const [expected, setExpected] = useState(testCase.expected);
+
+  // AI state
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<null | {
     improved_title: string;
@@ -21,6 +29,8 @@ export default function TestCaseClient({ testCase }: Props) {
     improved_expected: string;
   }>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+
+  /* ---------------- AI ---------------- */
 
   async function handleImproveWithAI() {
     setAiLoading(true);
@@ -33,147 +43,173 @@ export default function TestCaseClient({ testCase }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           testCaseId: testCase.id,
-          title: testCase.title,
-          steps: testCase.steps,
-          expected: testCase.expected,
+          title,
+          steps: steps.split("\n"),
+          expected,
         }),
       });
 
       const json = await res.json();
-
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "AI failed");
-      }
+      if (!res.ok || !json.success) throw new Error(json.error);
 
       setAiResult(json.data);
     } catch (err: any) {
-      setAiError(err.message || "Something went wrong");
+      setAiError(err.message || "AI failed");
     } finally {
       setAiLoading(false);
     }
   }
 
+  /* ---------------- SAVE EDIT ---------------- */
+
+  async function handleSave() {
+    setLoading(true);
+
+    const res = await fetch(`/api/testcases/${testCase.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        steps: steps.split("\n"),
+        expected,
+      }),
+    });
+
+    setLoading(false);
+
+    if (!res.ok) {
+      alert("Failed to save test case");
+      return;
+    }
+
+    setEditMode(false);
+  }
+
+  /* ---------------- DELETE ---------------- */
+
+  async function handleDelete() {
+    if (!confirm("Are you sure you want to delete this test case?")) return;
+
+    const res = await fetch(`/api/testcases/${testCase.id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      alert("Failed to delete test case");
+      return;
+    }
+
+    // Go back to module page
+    window.history.back();
+  }
+
+  /* ---------------- UI ---------------- */
+
   return (
-    <main style={{ padding: "24px" }}>
-      <h1 style={{ fontSize: "22px", fontWeight: 600 }}>
-        {testCase.title}
-      </h1>
+    <main style={{ padding: 24 }}>
+      {!editMode ? (
+        <>
+          <h1 style={{ fontSize: 22, fontWeight: 600 }}>{title}</h1>
 
-      <p style={{ marginTop: "8px", color: "#666" }}>
-        Project: {testCase.projectName}
-      </p>
-      <p style={{ marginTop: "4px", color: "#666" }}>
-        Module: {testCase.moduleName}
-      </p>
+          <p style={{ color: "#666" }}>
+            Project: {testCase.projectName}
+          </p>
+          <p style={{ color: "#666" }}>
+            Module: {testCase.moduleName}
+          </p>
 
-      <h2 style={{ marginTop: "24px", fontSize: "18px" }}>
-        Steps
-      </h2>
+          <h2 style={{ marginTop: 24 }}>Steps</h2>
+          <ol>
+            {steps.split("\n").map((s, i) => (
+              <li key={i}>{s}</li>
+            ))}
+          </ol>
 
-      <ol style={{ marginTop: "8px" }}>
-        {testCase.steps.map((step, index) => (
-          <li key={index} style={{ marginBottom: "6px" }}>
-            {step}
-          </li>
-        ))}
-      </ol>
+          <h2 style={{ marginTop: 24 }}>Expected Result</h2>
+          <p>{expected}</p>
 
-      <h2 style={{ marginTop: "24px", fontSize: "18px" }}>
-        Expected Result
-      </h2>
+          {/* ACTIONS */}
+          <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
+            <button onClick={() => setEditMode(true)}>✏️ Edit</button>
+            <button onClick={handleDelete} style={{ color: "red" }}>
+              🗑 Delete
+            </button>
+            <button onClick={handleImproveWithAI} disabled={aiLoading}>
+              🤖 Improve with AI
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <h2>Edit Test Case</h2>
 
-      <p style={{ marginTop: "8px" }}>
-        {testCase.expected}
-      </p>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            style={{ width: "100%", marginBottom: 12 }}
+          />
 
-      {/* AI Button */}
-      <button
-        onClick={handleImproveWithAI}
-        disabled={aiLoading}
-        style={{
-          marginTop: "24px",
-          padding: "10px 14px",
-          background: "black",
-          color: "#fff",
-          borderRadius: "6px",
-          opacity: aiLoading ? 0.6 : 1,
-        }}
-      >
-        {aiLoading ? "Improving…" : "🤖 Improve with AI"}
-      </button>
+          <textarea
+            value={steps}
+            onChange={(e) => setSteps(e.target.value)}
+            rows={6}
+            style={{ width: "100%", marginBottom: 12 }}
+          />
 
-      {/* Errors */}
-      {aiError && (
-        <p style={{ marginTop: "12px", color: "red" }}>
-          {aiError}
-        </p>
+          <textarea
+            value={expected}
+            onChange={(e) => setExpected(e.target.value)}
+            rows={3}
+            style={{ width: "100%", marginBottom: 12 }}
+          />
+
+          <div style={{ display: "flex", gap: 12 }}>
+            <button onClick={handleSave} disabled={loading}>
+              💾 Save
+            </button>
+            <button onClick={() => setEditMode(false)}>Cancel</button>
+          </div>
+        </>
       )}
 
-      {/* AI Result */}
+      {/* AI RESULT */}
       {aiResult && (
         <div
           style={{
-            marginTop: "24px",
-            padding: "16px",
+            marginTop: 24,
+            padding: 16,
             border: "1px solid #ddd",
-            borderRadius: "6px",
-            background: "#black",
+            borderRadius: 6,
+            background: "#f9fafb",
           }}
         >
-          <h3 style={{ fontWeight: 600, marginBottom: "8px" }}>
-            AI Suggested Improvements
-          </h3>
+          <h3>AI Suggested Improvements</h3>
+          <p><b>Title:</b> {aiResult.improved_title}</p>
 
-          <p><strong>Title:</strong> {aiResult.improved_title}</p>
-
-          <p style={{ marginTop: "12px" }}>
-            <strong>Steps:</strong>
-          </p>
           <ol>
             {aiResult.improved_steps.map((s, i) => (
               <li key={i}>{s}</li>
             ))}
           </ol>
 
-          <p style={{ marginTop: "12px" }}>
-            <strong>Expected:</strong> {aiResult.improved_expected}
-          </p>
-          {aiResult && (
-  <button
-    onClick={async () => {
-      const res = await fetch(
-        `/api/testcases/${testCase.id}/apply-ai`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: aiResult.improved_title,
-            steps: aiResult.improved_steps,
-            expected: aiResult.improved_expected,
-          }),
-        }
-      );
+          <p><b>Expected:</b> {aiResult.improved_expected}</p>
 
-      if (res.ok) {
-        window.location.reload();
-      } else {
-        alert("Failed to apply AI changes");
-      }
-    }}
-    style={{
-      marginTop: "12px",
-      padding: "8px 12px",
-      background: "#0f172a",
-      color: "#fff",
-      borderRadius: "6px",
-    }}
-  >
-    ✅ Apply AI Changes
-  </button>
-)}
-
+          <button
+            onClick={async () => {
+              await fetch(`/api/testcases/${testCase.id}/apply-ai`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(aiResult),
+              });
+              window.location.reload();
+            }}
+          >
+            ✅ Apply AI Changes
+          </button>
         </div>
       )}
+
+      {aiError && <p style={{ color: "red" }}>{aiError}</p>}
     </main>
   );
 }

@@ -6,13 +6,12 @@ import TestCaseClient from "./TestCaseClient";
 export default async function TestCaseDetailPage({
   params,
 }: {
-  params: {
+  params: Promise<{
     projectId: string;
     moduleId: string;
     testCaseId: string;
-  };
+  }>;
 }) {
-  // ✅ MUST await params
   const { projectId, moduleId, testCaseId } = await params;
 
   const session = await getAuthSession();
@@ -22,9 +21,20 @@ export default async function TestCaseDetailPage({
 
   const testCase = await prisma.testCase.findUnique({
     where: { id: testCaseId },
-    include: {
-      module: true,
-      project: true,
+    select: {
+      id: true,
+      title: true,
+      steps: true,
+      expected: true,
+      tags: true,
+      projectId: true,
+      moduleId: true,
+      project: {
+        select: { name: true },
+      },
+      module: {
+        select: { name: true },
+      },
     },
   });
 
@@ -33,7 +43,7 @@ export default async function TestCaseDetailPage({
     testCase.projectId !== projectId ||
     testCase.moduleId !== moduleId
   ) {
-    return <p style={{ padding: "24px" }}>Test case not found</p>;
+    return <p style={{ padding: 24 }}>Test case not found</p>;
   }
 
   return (
@@ -43,6 +53,7 @@ export default async function TestCaseDetailPage({
         title: testCase.title,
         steps: testCase.steps as string[],
         expected: testCase.expected,
+        tags: testCase.tags,
         projectName: testCase.project.name,
         moduleName: testCase.module?.name ?? "",
       }}
