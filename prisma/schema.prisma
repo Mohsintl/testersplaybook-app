@@ -111,6 +111,7 @@ model ProjectMember {
 model Module {
   id        String   @id @default(cuid())
   name      String
+  description String? 
   projectId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

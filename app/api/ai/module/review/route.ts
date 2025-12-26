@@ -2,11 +2,9 @@ import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { checkAndRecordAIUsage } from "@/lib/ai/usage";
-import  openai  from "@/lib/ai/client";
+import openai from "@/lib/ai/client";
 
 export async function POST(req: Request) {
- ;
-
   const session = await getAuthSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -20,17 +18,26 @@ export async function POST(req: Request) {
   // Rate limit
   await checkAndRecordAIUsage(session.user.id, "analyze");
 
-  const testCases = await prisma.testCase.findMany({
-    where: { moduleId },
-    select: {
-      id: true,
-      title: true,
-      steps: true,
-      expected: true,
+  const module = await prisma.module.findUnique({
+    where: { id: moduleId },
+    include: {
+    
+      testCases: {
+        select: {
+          id: true,
+          title: true,
+          steps: true,
+          expected: true,
+        },
+      },
     },
   });
 
-  if (testCases.length === 0) {
+  if (!module) {
+    return NextResponse.json({ error: "Module not found" }, { status: 404 });
+  }
+
+  if (module.testCases.length === 0) {
     return NextResponse.json({
       success: true,
       data: {
@@ -38,38 +45,41 @@ export async function POST(req: Request) {
         duplicate_test_cases: [],
         missing_coverage: ["No test cases found"],
         risk_areas: ["Module has no test coverage"],
-        recommendations: ["Add basic positive and negative test cases"]
-      }
+      },
     });
   }
 
   const prompt = `
 You are a senior QA engineer.
 
-Analyze the following test cases for a single module.
+Review the following MODULE and its test cases.
 
-Identify:
-- Overall quality
-- Duplicate or overlapping test cases
-- Missing coverage areas
-- Risk areas
-- Actionable recommendations
+Module name:
+${module.name}
+
+Module description:
+${module.description ?? "No description provided"}
 
 Test cases:
-${JSON.stringify(testCases)}
+${JSON.stringify(module.testCases, null, 2)}
+
+Analyze:
+1. Duplicate test scenarios
+2. Missing functional coverage
+3. Risk areas
+4. Overall quality (LOW | MEDIUM | HIGH)
 
 Return ONLY valid JSON in this format:
 {
-  "overall_quality": "LOW | MEDIUM | HIGH",
   "duplicate_test_cases": [
     {
-      "test_case_ids": string[],
-      "reason": string
+      "test_case_ids": ["string"],
+      "reason": "string"
     }
   ],
-  "missing_coverage": string[],
-  "risk_areas": string[],
-  "recommendations": string[]
+  "missing_coverage": ["string"],
+  "risk_areas": ["string"],
+  "overall_quality": "LOW | MEDIUM | HIGH"
 }
 `;
 
