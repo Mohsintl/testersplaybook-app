@@ -138,6 +138,40 @@ export default function TestCaseClient({ testCase }: Props) {
           <p style={{ marginTop: "12px" }}>
             <strong>Expected:</strong> {aiResult.improved_expected}
           </p>
+          {aiResult && (
+  <button
+    onClick={async () => {
+      const res = await fetch(
+        `/api/testcases/${testCase.id}/apply-ai`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: aiResult.improved_title,
+            steps: aiResult.improved_steps,
+            expected: aiResult.improved_expected,
+          }),
+        }
+      );
+
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        alert("Failed to apply AI changes");
+      }
+    }}
+    style={{
+      marginTop: "12px",
+      padding: "8px 12px",
+      background: "#0f172a",
+      color: "#fff",
+      borderRadius: "6px",
+    }}
+  >
+    ✅ Apply AI Changes
+  </button>
+)}
+
         </div>
       )}
     </main>

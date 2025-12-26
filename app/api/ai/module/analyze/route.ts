@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    await checkAndRecordAIUsage(session.user.id, "analyze");
+    await checkAndRecordAIUsage(session.user.id, "improve");
     const result = await analyzeModule(moduleId);
     return NextResponse.json({ success: true, data: result });
   } catch (error: any) {

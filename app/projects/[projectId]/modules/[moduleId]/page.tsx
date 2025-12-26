@@ -2,6 +2,7 @@ import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import CreateTestCaseForm from "./CreateTestCaseForm";
+import ModuleAIReview from "./ModuleAIReview";
 
 
 export default async function ModulePage({
@@ -9,6 +10,7 @@ export default async function ModulePage({
 }: {
   params: Promise<{ projectId: string; moduleId: string }>;
 }) {
+    
   const { projectId, moduleId } = await params;
 
   const session = await getAuthSession();
@@ -29,6 +31,10 @@ export default async function ModulePage({
   if (!module || module.projectId !== projectId) {
     return <p style={{ padding: "24px" }}>Module not found</p>;
   }
+  const testCases = await prisma.testCase.findMany({
+  where: { moduleId },
+});
+
 
   return (
     <main style={{ padding: "24px" }}>
@@ -66,6 +72,11 @@ export default async function ModulePage({
           </li>
         ))}
       </ul>
+        <ModuleAIReview moduleId={moduleId}   testCases={testCases.map(tc => ({
+    id: tc.id,
+    title: tc.title,
+  }))} />
+
     </main>
   );
 }
