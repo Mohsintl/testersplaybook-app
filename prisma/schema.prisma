@@ -139,7 +139,7 @@ model TestCase {
 
   // Relations
   project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  module  Module?      @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  module  Module?      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   results TestResult[]
   bugs    Bug[]
 

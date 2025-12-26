@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import CreateTestCaseForm from "./CreateTestCaseForm";
 import ModuleAIReview from "./ModuleAIReview";
+import ModuleAIGenerate from "./modelAIGenerate";
 
 
 export default async function ModulePage({
@@ -76,6 +77,8 @@ export default async function ModulePage({
     id: tc.id,
     title: tc.title,
   }))} />
+  <ModuleAIGenerate moduleId={module.id} />
+
 
     </main>
   );
