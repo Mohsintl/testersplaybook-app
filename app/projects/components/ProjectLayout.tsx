@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels";
 
 interface ProjectLayoutProps {
   title: string;
@@ -15,17 +18,15 @@ const ProjectLayout: React.FC<ProjectLayoutProps> = ({
 }) => {
   return (
     <main>
-      <div className="flex flex-col md:flex-row md:gap-8">
-        {/* Left side */}
-        <div className="flex-1 p-4 border-b md:border-b-0 md:border-r border-gray-200 md:w-1/2">
-          <h1 className="text-lg font-medium mb-4">{title}</h1>
-          <p className="text-gray-600 mb-4">{description}</p>
-          {leftContent}
-        </div>
-
-        {/* Right side */}
-        <div className="flex-1 p-4 md:w-1/2">{rightContent}</div>
-      </div>
+      <h1 className="text-lg font-medium mb-4">{title}</h1>
+      <p className="text-gray-600 mb-4">{description}</p>
+      <PanelGroup direction="horizontal">
+        {/* Left Panel */}
+        <Panel className="p-4 border-r border-gray-200">{leftContent}</Panel>
+        <PanelResizeHandle className="w-2 bg-gray-300 cursor-col-resize" />
+        {/* Right Panel */}
+        <Panel className="p-4">{rightContent}</Panel>
+      </PanelGroup>
     </main>
   );
 };
