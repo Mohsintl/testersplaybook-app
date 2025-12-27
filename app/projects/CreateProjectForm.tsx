@@ -67,9 +67,13 @@ export default function CreateProjectForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Project Description</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Project description" />
-              </FormControl>
+                <FormControl>
+                <Input
+                  {...field}
+                  placeholder="Project description"
+                  className="h-24"
+                />
+                </FormControl>
               <FormMessage />
             </FormItem>
           )}

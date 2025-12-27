@@ -73,7 +73,7 @@ export default function CreateModuleForm({
             <FormItem>
               <FormLabel>Module Description</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Module description" />
+                <Input {...field} placeholder="Module description"  className="h-24"/>
               </FormControl>
               <FormMessage />
             </FormItem>

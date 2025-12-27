@@ -54,9 +54,7 @@ export async function generateTestCases(
     where: { moduleId },
   });
 
-  if (!testCases.length) {
-    throw new Error("No test cases found for module");
-  }
+  
 
   const prompt = generateTestCasesPrompt(testCases);
   return await runAI(prompt);

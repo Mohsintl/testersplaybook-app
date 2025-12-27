@@ -12,7 +12,10 @@ export async function POST(req: Request) {
 
   const { moduleId } = await req.json();
   if (!moduleId) {
-    return NextResponse.json({ error: "moduleId required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "moduleId required" },
+      { status: 400 }
+    );
   }
 
   // 🔒 Rate limit
@@ -21,6 +24,12 @@ export async function POST(req: Request) {
   const module = await prisma.module.findUnique({
     where: { id: moduleId },
     include: {
+      project: {
+        select: {
+          name: true,
+          description: true,
+        },
+      },
       testCases: {
         select: {
           title: true,
@@ -32,25 +41,73 @@ export async function POST(req: Request) {
   });
 
   if (!module) {
-    return NextResponse.json({ error: "Module not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Module not found" },
+      { status: 404 }
+    );
   }
 
-  const prompt = `
+  const hasExistingTests = module.testCases.length > 0;
+
+  const prompt = hasExistingTests
+    ? `
 You are a senior QA engineer.
 
-Module name:
-${module.name}
+PROJECT CONTEXT
+Name: ${module.project.name}
+Description: ${module.project.description ?? "Not provided"}
 
-Module description:
-${module.description ?? "No description provided"}
+MODULE CONTEXT
+Name: ${module.name}
+Description: ${module.description ?? "Not provided"}
 
-Existing test cases:
+EXISTING TEST CASES (DO NOT DUPLICATE):
 ${JSON.stringify(module.testCases, null, 2)}
 
-Generate 3–5 NEW test cases that:
-- Cover missing edge cases
-- Do NOT repeat existing scenarios
-- Are written clearly
+TASK:
+Generate NEW test cases that improve coverage.
+
+RULES:
+- Do NOT repeat or rephrase existing scenarios
+- Focus on missing edge cases, negative paths, validations, and risks
+- Only generate NET-NEW scenarios
+
+Generate 3–5 test cases.
+
+Return ONLY valid JSON:
+{
+  "generated_test_cases": [
+    {
+      "title": string,
+      "steps": string[],
+      "expected": string
+    }
+  ]
+}
+`
+    : `
+You are a senior QA engineer.
+
+PROJECT CONTEXT
+Name: ${module.project.name}
+Description: ${module.project.description ?? "Not provided"}
+
+MODULE CONTEXT
+Name: ${module.name}
+Description: ${module.description ?? "Not provided"}
+
+TASK:
+This module currently has NO test cases.
+
+Generate an initial, well-rounded test suite that includes:
+- Happy path
+- Negative scenarios
+- Input validation
+- Edge cases
+- Risk-prone areas
+
+Generate 4–6 test cases that would be expected
+from a professional QA engineer starting fresh.
 
 Return ONLY valid JSON:
 {
@@ -71,7 +128,18 @@ Return ONLY valid JSON:
   });
 
   const content = completion.choices[0].message.content;
-  const data = JSON.parse(content!);
 
-  return NextResponse.json({ success: true, data });
+  if (!content) {
+    return NextResponse.json(
+      { error: "Empty AI response" },
+      { status: 500 }
+    );
+  }
+
+  const parsed = JSON.parse(content);
+
+  return NextResponse.json({
+    success: true,
+    data: parsed.generated_test_cases,
+  });
 }

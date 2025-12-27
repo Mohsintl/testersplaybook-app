@@ -12,16 +12,25 @@ export async function POST(req: Request) {
 
   const { moduleId } = await req.json();
   if (!moduleId) {
-    return NextResponse.json({ error: "moduleId required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "moduleId required" },
+      { status: 400 }
+    );
   }
 
-  // Rate limit
+  // 🔒 Rate limit (analyze)
   await checkAndRecordAIUsage(session.user.id, "analyze");
 
+  // ✅ Fetch module WITH project context
   const module = await prisma.module.findUnique({
     where: { id: moduleId },
     include: {
-    
+      project: {
+        select: {
+          name: true,
+          description: true,
+        },
+      },
       testCases: {
         select: {
           id: true,
@@ -34,52 +43,39 @@ export async function POST(req: Request) {
   });
 
   if (!module) {
-    return NextResponse.json({ error: "Module not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Module not found" },
+      { status: 404 }
+    );
   }
 
-  if (module.testCases.length === 0) {
-    return NextResponse.json({
-      success: true,
-      data: {
-        overall_quality: "LOW",
-        duplicate_test_cases: [],
-        missing_coverage: ["No test cases found"],
-        risk_areas: ["Module has no test coverage"],
-      },
-    });
-  }
-
+  // 🧠 Structured prompt (important)
   const prompt = `
-You are a senior QA engineer.
+You are a senior QA engineer reviewing test coverage quality.
 
-Review the following MODULE and its test cases.
+PROJECT CONTEXT
+Name: ${module.project.name}
+Description: ${module.project.description ?? "Not provided"}
 
-Module name:
-${module.name}
+MODULE CONTEXT
+Name: ${module.name}
+Description: ${module.description ?? "Not provided"}
 
-Module description:
-${module.description ?? "No description provided"}
-
-Test cases:
+TEST CASES
 ${JSON.stringify(module.testCases, null, 2)}
 
-Analyze:
-1. Duplicate test scenarios
-2. Missing functional coverage
-3. Risk areas
-4. Overall quality (LOW | MEDIUM | HIGH)
+Analyze the module test coverage and return ONLY valid JSON.
 
-Return ONLY valid JSON in this format:
 {
   "duplicate_test_cases": [
     {
-      "test_case_ids": ["string"],
-      "reason": "string"
+      "test_case_ids": string[],
+      "reason": string
     }
   ],
-  "missing_coverage": ["string"],
-  "risk_areas": ["string"],
-  "overall_quality": "LOW | MEDIUM | HIGH"
+  "missing_coverage": string[],
+  "risk_areas": string[],
+  "overall_quality": "LOW" | "MEDIUM" | "HIGH"
 }
 `;
 
@@ -90,7 +86,18 @@ Return ONLY valid JSON in this format:
   });
 
   const content = completion.choices[0].message.content;
-  const data = JSON.parse(content!);
 
-  return NextResponse.json({ success: true, data });
+  if (!content) {
+    return NextResponse.json(
+      { error: "Empty AI response" },
+      { status: 500 }
+    );
+  }
+
+  const data = JSON.parse(content);
+
+  return NextResponse.json({
+    success: true,
+    data,
+  });
 }
