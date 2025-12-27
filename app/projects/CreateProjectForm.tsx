@@ -75,7 +75,7 @@ export default function CreateProjectForm() {
           )}
         />
 
-        <Button type="submit" disabled={loading} className="ml-2">
+        <Button type="submit" disabled={loading} className="ml-2 border border-black text-gray-700 hover:bg-gray-100">
           {loading ? "Creating..." : "Add Project"}
         </Button>
 

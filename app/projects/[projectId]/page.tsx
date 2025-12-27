@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import CreateModuleForm from "./CreateModuleForm";
 import ModuleList from "./ModuleList";
+import ProjectLayout from "../components/ProjectLayout";
 
 
 export default async function ProjectPage({
@@ -32,22 +33,11 @@ export default async function ProjectPage({
   }
 
   return (
-    <main style={{ padding: "24px" }}>
-      <h1 style={{ fontSize: "24px", fontWeight: 600 }}>
-        {project.name}
-      </h1>
-
-      <p style={{ marginTop: "8px", color: "#666" }}>
-        {project.description ?? "No description"}
-      </p>
-
-      <h2 style={{ marginTop: "24px", fontSize: "18px" }}>
-        Modules
-      </h2>
-
-      <CreateModuleForm projectId={projectId} />
-
-      <ModuleList modules={project.modules} projectId={projectId} />
-    </main>
+    <ProjectLayout
+      title={project.name}
+      description={project.description ?? "No description"}
+      leftContent={<ModuleList modules={project.modules} projectId={projectId} />}
+      rightContent={<CreateModuleForm projectId={projectId} />}
+    />
   );
 }

@@ -4,14 +4,13 @@ import { redirect } from "next/navigation";
 import CreateTestCaseForm from "./CreateTestCaseForm";
 import ModuleAIReview from "./ModuleAIReview";
 import ModuleAIGenerate from "./modelAIGenerate";
-
+import ProjectLayout from "@/app/projects/components/ProjectLayout";
 
 export default async function ModulePage({
   params,
 }: {
   params: Promise<{ projectId: string; moduleId: string }>;
 }) {
-    
   const { projectId, moduleId } = await params;
 
   const session = await getAuthSession();
@@ -32,57 +31,50 @@ export default async function ModulePage({
   if (!module || module.projectId !== projectId) {
     return <p style={{ padding: "24px" }}>Module not found</p>;
   }
-  const testCases = await prisma.testCase.findMany({
-  where: { moduleId },
-});
 
+  const testCases = await prisma.testCase.findMany({
+    where: { moduleId },
+  });
 
   return (
-    <main style={{ padding: "24px" }}>
-      <h1 style={{ fontSize: "22px", fontWeight: 600 }}>
-        {module.name}
-      </h1>
-
-      <p style={{ marginTop: "8px", color: "#666" }}>
-        Project: {module.project.name}
-      </p>
-      <CreateTestCaseForm
-  projectId={projectId}
-  moduleId={moduleId}
-/>
-
-
-      <h2 style={{ marginTop: "24px", fontSize: "18px" }}>
-        Test Cases
-      </h2>
-
-      {module.testCases.length === 0 && (
-        <p style={{ marginTop: "12px" }}>
-          No test cases yet.
-        </p>
-      )}
-
-      <ul style={{ marginTop: "12px" }}>
-        {module.testCases.map((tc) => (
-          <li key={tc.id} style={{ marginBottom: "8px" }}>
-             <a
-    href={`/projects/${projectId}/modules/${moduleId}/test-cases/${tc.id}`}
-  >
-    {tc.title}
-  </a>
-          </li>
-        ))}
-      </ul>
-    <div style={{ display: "flex", gap: "16px", marginTop: "24px" }}>
-      <ModuleAIReview
-        moduleId={moduleId}
-        testCases={testCases.map(tc => ({
-          id: tc.id,
-          title: tc.title,
-        }))}
-      />
-      <ModuleAIGenerate moduleId={module.id} />
-    </div>
-    </main>
+    <ProjectLayout
+      title={module.name}
+      description={`Project: ${module.project.name}`}
+      leftContent={
+        <>
+          <h2 className="text-lg font-medium mb-4">Test Cases</h2>
+          {module.testCases.length === 0 ? (
+            <p>No test cases yet.</p>
+          ) : (
+            <ul>
+              {module.testCases.map((tc) => (
+                <li key={tc.id}>
+                  <a
+                    href={`/projects/${projectId}/modules/${moduleId}/test-cases/${tc.id}`}
+                  >
+                    {tc.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      }
+      rightContent={
+        <>
+          <CreateTestCaseForm projectId={projectId} moduleId={moduleId} />
+          <div className="flex gap-4 mt-4">
+            <ModuleAIReview
+              moduleId={moduleId}
+              testCases={testCases.map((tc) => ({
+                id: tc.id,
+                title: tc.title,
+              }))}
+            />
+            <ModuleAIGenerate moduleId={module.id} />
+          </div>
+        </>
+      }
+    />
   );
 }

@@ -6,7 +6,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme inline {
+main {
+  padding-top: 5rem !important;
+}
+
+/* @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -125,4 +129,4 @@
   body {
     @apply bg-background text-foreground;
   }
-}
+} */
