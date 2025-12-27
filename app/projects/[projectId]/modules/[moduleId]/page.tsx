@@ -73,13 +73,16 @@ export default async function ModulePage({
           </li>
         ))}
       </ul>
-        <ModuleAIReview moduleId={moduleId}   testCases={testCases.map(tc => ({
-    id: tc.id,
-    title: tc.title,
-  }))} />
-  <ModuleAIGenerate moduleId={module.id} />
-
-
+    <div style={{ display: "flex", gap: "16px", marginTop: "24px" }}>
+      <ModuleAIReview
+        moduleId={moduleId}
+        testCases={testCases.map(tc => ({
+          id: tc.id,
+          title: tc.title,
+        }))}
+      />
+      <ModuleAIGenerate moduleId={module.id} />
+    </div>
     </main>
   );
 }

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 function Header() {
   return (
-    <header className="fixed top-0 left-0 w-full bg-blue-600 text-white py-4 shadow-md z-50">
+    <header className="fixed top-0 left-0 w-full  text-black px-10 py-5 shadow-md z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4">
         {/* Branding */}
         <div className="text-lg font-semibold">TestersPlaybook</div>

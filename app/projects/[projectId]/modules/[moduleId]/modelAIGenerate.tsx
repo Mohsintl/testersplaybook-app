@@ -102,10 +102,10 @@ export default function ModuleAIGenerate({
   }
 
   return (
-    <section style={{ marginTop: "24px" }}>
-      <h3 style={{ fontSize: "18px", marginBottom: "12px" }}>
+    <section >
+      {/* <h3 style={{ fontSize: "18px", marginBottom: "12px" }}>
         🤖 AI Generate Test Cases
-      </h3>
+      </h3> */}
 
       {/* Generate Button */}
       {generated.length === 0 && (
@@ -113,15 +113,15 @@ export default function ModuleAIGenerate({
           onClick={handleGenerate}
           disabled={loading}
           style={{
-            padding: "10px 16px",
-            background: "#2563eb",
-            color: "white",
-            borderRadius: "6px",
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.6 : 1,
+             marginTop: 24 
           }}
         >
-          {loading ? "Generating…" : "Generate Test Cases"}
+          {/* <h3 style={{ fontSize: "18px", marginBottom: "12px" }}>
+        🤖 AI Generate Test Cases
+      </h3> */}
+          {loading ? "Generating…" : <h3 style={{ fontSize: "18px", marginBottom: "12px" }}>
+        🤖 AI Generate Test Cases
+      </h3>}
         </button>
       )}
 

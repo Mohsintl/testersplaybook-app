@@ -1,6 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 export default function CreateTestCaseForm({
   projectId,
@@ -9,15 +21,24 @@ export default function CreateTestCaseForm({
   projectId: string;
   moduleId: string;
 }) {
-  const [title, setTitle] = useState("");
-  const [steps, setSteps] = useState("");
-  const [expected, setExpected] = useState("");
+  const form = useForm({
+    defaultValues: {
+      title: "",
+      steps: "",
+      expected: "",
+    },
+  });
+
+  const { handleSubmit } = form;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!title || !steps || !expected) return;
+  async function onSubmit(data: {
+    title: string;
+    steps: string;
+    expected: string;
+  }) {
+    if (!data.title || !data.steps || !data.expected) return;
 
     setLoading(true);
     setError(null);
@@ -26,9 +47,9 @@ export default function CreateTestCaseForm({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        title,
-        steps: steps.split("\n"),
-        expected,
+        title: data.title,
+        steps: data.steps.split("\n"),
+        expected: data.expected,
         moduleId,
       }),
     });
@@ -43,35 +64,55 @@ export default function CreateTestCaseForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginTop: "16px" }}>
-      <h3 style={{ marginBottom: "8px" }}>Create Test Case</h3>
+    <Form {...form}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
+        <h3 className="text-lg font-medium">Create Test Case</h3>
 
-      <input
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        style={{ display: "block", marginBottom: "8px", width: "300px" }}
-      />
+        <FormField
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Title" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <textarea
-        placeholder="Steps (one per line)"
-        value={steps}
-        onChange={(e) => setSteps(e.target.value)}
-        style={{ display: "block", marginBottom: "8px", width: "300px", height: "80px" }}
-      />
+        <FormField
+          name="steps"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Steps (one per line)</FormLabel>
+              <FormControl>
+                <Textarea {...field} placeholder="Steps (one per line)" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <input
-        placeholder="Expected result"
-        value={expected}
-        onChange={(e) => setExpected(e.target.value)}
-        style={{ display: "block", marginBottom: "8px", width: "300px" }}
-      />
+        <FormField
+          name="expected"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Expected Result</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Expected result" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <button type="submit" disabled={loading}>
-        {loading ? "Creating..." : "Add Test Case"}
-      </button>
+        <Button type="submit" disabled={loading} className="ml-2">
+          {loading ? "Creating..." : "Add Test Case"}
+        </Button>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </form>
+        {error && <p className="text-red-500 mt-2">{error}</p>}
+      </form>
+    </Form>
   );
 }

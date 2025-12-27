@@ -1,16 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+  FormField,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
 
 export default function CreateProjectForm() {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const form = useForm({
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
+
+  const { handleSubmit } = form;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim()) return;
+  async function onSubmit(data: { name: string; description: string }) {
+    if (!data.name.trim()) return;
 
     setLoading(true);
     setError(null);
@@ -18,7 +34,7 @@ export default function CreateProjectForm() {
     const res = await fetch(`/api/projects`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description }),
+      body: JSON.stringify(data),
     });
 
     if (!res.ok) {
@@ -31,31 +47,40 @@ export default function CreateProjectForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginTop: "16px" }}>
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Project name"
-        style={{ padding: "8px", width: "240px" }}
-      />
-      <input
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Project description"
-        style={{ padding: "8px", width: "240px", marginLeft: "8px" }}
-      />
+    <Form {...form}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
+        <FormField
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Project Name</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Project name" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <button
-        type="submit"
-        disabled={loading}
-        style={{ marginLeft: "8px", padding: "8px" }}
-      >
-        {loading ? "Creating..." : "Add Project"}
-      </button>
+        <FormField
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Project Description</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Project description" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      {error && (
-        <p style={{ color: "red", marginTop: "8px" }}>{error}</p>
-      )}
-    </form>
+        <Button type="submit" disabled={loading} className="ml-2">
+          {loading ? "Creating..." : "Add Project"}
+        </Button>
+
+        {error && <p className="text-red-500 mt-2">{error}</p>}
+      </form>
+    </Form>
   );
 }

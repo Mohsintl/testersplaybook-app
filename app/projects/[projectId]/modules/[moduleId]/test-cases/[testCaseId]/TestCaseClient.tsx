@@ -1,6 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   testCase: {
@@ -14,6 +26,16 @@ type Props = {
 };
 
 export default function TestCaseClient({ testCase }: Props) {
+  const form = useForm({
+    defaultValues: {
+      title: testCase.title,
+      steps: testCase.steps.join("\n"),
+      expected: testCase.expected,
+    },
+  });
+
+  const { handleSubmit } = form;
+
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -62,16 +84,20 @@ export default function TestCaseClient({ testCase }: Props) {
 
   /* ---------------- SAVE EDIT ---------------- */
 
-  async function handleSave() {
+  async function handleSave(data: {
+    title: string;
+    steps: string;
+    expected: string;
+  }) {
     setLoading(true);
 
     const res = await fetch(`/api/testcases/${testCase.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        title,
-        steps: steps.split("\n"),
-        expected,
+        title: data.title,
+        steps: data.steps.split("\n"),
+        expected: data.expected,
       }),
     });
 
@@ -81,6 +107,11 @@ export default function TestCaseClient({ testCase }: Props) {
       alert("Failed to save test case");
       return;
     }
+
+    // Update local state with the new values
+    setTitle(data.title);
+    setSteps(data.steps);
+    setExpected(data.expected);
 
     setEditMode(false);
   }
@@ -140,36 +171,59 @@ export default function TestCaseClient({ testCase }: Props) {
           </div>
         </>
       ) : (
-        <>
-          <h2>Edit Test Case</h2>
+        <Form {...form}>
+          <form onSubmit={handleSubmit(handleSave)} className="space-y-4">
+            <h2 className="text-lg font-medium">Edit Test Case</h2>
 
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            style={{ width: "100%", marginBottom: 12 }}
-          />
+            <FormField
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <textarea
-            value={steps}
-            onChange={(e) => setSteps(e.target.value)}
-            rows={6}
-            style={{ width: "100%", marginBottom: 12 }}
-          />
+            <FormField
+              name="steps"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Steps</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} rows={6} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <textarea
-            value={expected}
-            onChange={(e) => setExpected(e.target.value)}
-            rows={3}
-            style={{ width: "100%", marginBottom: 12 }}
-          />
+            <FormField
+              name="expected"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Expected Result</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} rows={3} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <div style={{ display: "flex", gap: 12 }}>
-            <button onClick={handleSave} disabled={loading}>
-              💾 Save
-            </button>
-            <button onClick={() => setEditMode(false)}>Cancel</button>
-          </div>
-        </>
+            <div className="flex gap-4">
+              <Button type="submit" disabled={loading}>
+                💾 Save
+              </Button>
+              <Button variant="secondary" onClick={() => setEditMode(false)}>
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Form>
       )}
 
       {/* AI RESULT */}
@@ -184,7 +238,9 @@ export default function TestCaseClient({ testCase }: Props) {
           }}
         >
           <h3>AI Suggested Improvements</h3>
-          <p><b>Title:</b> {aiResult.improved_title}</p>
+          <p>
+            <b>Title:</b> {aiResult.improved_title}
+          </p>
 
           <ol>
             {aiResult.improved_steps.map((s, i) => (
@@ -192,7 +248,9 @@ export default function TestCaseClient({ testCase }: Props) {
             ))}
           </ol>
 
-          <p><b>Expected:</b> {aiResult.improved_expected}</p>
+          <p>
+            <b>Expected:</b> {aiResult.improved_expected}
+          </p>
 
           <button
             onClick={async () => {
