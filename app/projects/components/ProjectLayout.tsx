@@ -25,7 +25,7 @@ const ProjectLayout: React.FC<ProjectLayoutProps> = ({
         <Panel className="p-4 border-r border-gray-200">{leftContent}</Panel>
         <PanelResizeHandle className="w-2 bg-gray-300 cursor-col-resize" />
         {/* Right Panel */}
-        <Panel className="p-4">{rightContent}</Panel>
+        <Panel className="flex-1 p-4">{rightContent}</Panel>
       </PanelGroup>
     </main>
   );

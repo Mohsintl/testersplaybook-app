@@ -81,12 +81,15 @@ model Project {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+
   // Relations
   owner       User            @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members     ProjectMember[]
   modules     Module[]
   testCases   TestCase[]
   testRuns    TestRun[]
+  behaviors   ProjectBehavior[]
+
   bugs        Bug[]
   invitations Invitation[]
 
@@ -282,4 +285,16 @@ model AIUsage {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, action, createdAt])
+}
+
+model ProjectBehavior {
+  id          String   @id @default(cuid())
+  projectId   String
+  userAction  String
+  systemResult String
+  createdAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_behaviors")
 }
