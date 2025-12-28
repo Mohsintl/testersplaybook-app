@@ -68,6 +68,25 @@ export default function ProjectBehaviorClient({
     }
   }
 
+  async function handleDelete(behaviorId: string) {
+    try {
+      const res = await fetch(
+        `/api/projects/${projectId}/behaviours/${behaviorId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to delete behavior");
+      }
+
+      window.location.reload(); // Refresh the page to reflect changes
+    } catch (err) {
+      console.error("Error deleting behavior:", err);
+    }
+  }
+
   return (
     <section style={{ marginTop: "32px" }}>
       <h2 style={{ fontSize: "18px", fontWeight: 600 }}>
@@ -83,14 +102,24 @@ export default function ProjectBehaviorClient({
         <ul style={{ marginBottom: "16px" }}>
           {existingBehaviors.map((behavior) => (
             <li key={behavior.id} style={{ marginBottom: "6px" }}>
-               <strong>{behavior.userAction}</strong> → {behavior.systemResult}
+              <strong>{behavior.userAction}</strong> → {behavior.systemResult}
+              <button
+                onClick={() => handleDelete(behavior.id)}
+                style={{
+                  marginLeft: "10px",
+                  color: "red",
+                  cursor: "pointer",
+                }}
+              >
+                Delete
+              </button>
             </li>
           ))}
         </ul>
       )}
 
       {/* Form */}
-      <Form {...form}> 
+      <Form {...form}>
         <form
           onSubmit={(e) => {
             e.preventDefault();

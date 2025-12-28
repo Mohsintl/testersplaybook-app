@@ -43,6 +43,7 @@ export default async function ProjectPage({
     const behaviors = await prisma.projectBehavior.findMany({
       where: { projectId },
       select: {
+        id: true,
         userAction: true,
         systemResult: true,
       },

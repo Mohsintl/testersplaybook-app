@@ -44,8 +44,8 @@ export async function POST(
   }
 
   try {
-        const { projectId } = await params; 
-    const behavior =  await prisma.projectBehavior.create({
+    const { projectId } = await params;
+    const behavior = await prisma.projectBehavior.create({
       data: {
         projectId,
         userAction,
