@@ -53,7 +53,7 @@ export default function RootLayout({
       >
         <Header />
         {/* <main className="mt-6 max-w-5xl mx-auto pt-20 px-2"> */}
-        <main >
+        <main className="w-screen h-screen  box-border pt-7 w-full px-2  overflow-auto">
           {children}
         </main>
       </body>

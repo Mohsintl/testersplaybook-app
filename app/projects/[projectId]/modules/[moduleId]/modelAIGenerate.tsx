@@ -175,6 +175,22 @@ export default function ModuleAIGenerate({
         </button>
       )}
 
+      {/* Close Button */}
+      {generated.length > 0 && (
+        <button
+          onClick={() => setGenerated([])}
+          style={{
+            marginTop: "12px",
+            padding: "8px 12px",
+            background: "red",
+            color: "white",
+            borderRadius: "6px",
+          }}
+        >
+          Close
+        </button>
+      )}
+
       {error && (
         <p style={{ color: "red", marginTop: "12px" }}>
           {error}

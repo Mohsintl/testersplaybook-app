@@ -5,6 +5,8 @@ import CreateTestCaseForm from "./CreateTestCaseForm";
 import ModuleAIReview from "./ModuleAIReview";
 import ModuleAIGenerate from "./modelAIGenerate";
 import ProjectLayout from "@/app/projects/components/ProjectLayout";
+import ModuleBehaviorClient from "./ModuleBehaviorClient";
+
 
 export default async function ModulePage({
   params,
@@ -28,6 +30,15 @@ export default async function ModulePage({
     },
   });
 
+  const behaviors = await prisma.projectBehavior.findMany({
+  where: {
+     moduleId: module.id,
+    scope: "MODULE",
+  },
+  orderBy: { createdAt: "desc" },
+});
+
+
   if (!module || module.projectId !== projectId) {
     return <p style={{ padding: "24px" }}>Module not found</p>;
   }
@@ -41,7 +52,7 @@ export default async function ModulePage({
       title={module.name}
       description={`Project: ${module.project.name}`}
       leftContent={
-        <>
+        <div>
           <h2 className="text-lg font-medium mb-4">Test Cases</h2>
           {module.testCases.length === 0 ? (
             <p>No test cases yet.</p>
@@ -58,10 +69,10 @@ export default async function ModulePage({
               ))}
             </ul>
           )}
-        </>
+        </div>
       }
       rightContent={
-        <>
+        <div>
           <CreateTestCaseForm projectId={projectId} moduleId={moduleId} />
           <div className="flex gap-4 mt-4">
             <ModuleAIReview
@@ -73,8 +84,18 @@ export default async function ModulePage({
             />
             <ModuleAIGenerate moduleId={module.id} />
           </div>
-        </>
-      }
-    />
+          </div >}
+          extraRightContent={
+
+            <ModuleBehaviorClient
+               projectId={module.project.id}
+                moduleId={module.id}
+                existingBehaviors={behaviors}
+              />
+
+ 
+          }
+      />
+   
   );
 }

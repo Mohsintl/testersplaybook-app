@@ -14,6 +14,10 @@ export default function ModuleAIReview({
 }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [isVisible, setIsVisible] = useState(true);
+
+  if (!isVisible) return null;
+
   type ModuleReviewResult = {
   overall_quality: "LOW" | "MEDIUM" | "HIGH";
   risk_areas: string[];
@@ -116,6 +120,7 @@ function Section({
 
   return (
     <div style={{ marginTop: 24 }}>
+      
       <button onClick={handleReview} disabled={loading}>
         {loading ? "Reviewing…" : "🤖 Review module"}
       </button>
@@ -129,6 +134,10 @@ function Section({
     <Section title="⚠️ Risk Areas" items={result.risk_areas} />
     <Section title="🧩 Missing Coverage" items={result.missing_coverage} />
     <Section title="🔁 Duplicate Test Cases" items={result.duplicate_test_cases} />
+
+    <button onClick={() => setResult(null)} style={{ marginTop: 12, color: 'red' }}>
+      Close
+    </button>
   </div>
 )}
 

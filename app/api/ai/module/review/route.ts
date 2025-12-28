@@ -94,10 +94,17 @@ Analyze the module test coverage and return ONLY valid JSON.
     );
   }
 
-  const data = JSON.parse(content);
+  try {
+    const data = JSON.parse(content);
 
-  return NextResponse.json({
-    success: true,
-    data,
-  });
+    return NextResponse.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Invalid JSON response from AI", details: error.message },
+      { status: 500 }
+    );
+  }
 }

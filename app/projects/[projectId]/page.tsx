@@ -41,7 +41,8 @@ export default async function ProjectPage({
     console.log("[ProjectPage] Project data fetched successfully"); // Debug log
 
     const behaviors = await prisma.projectBehavior.findMany({
-      where: { projectId },
+      where: { projectId ,
+        scope: "PROJECT" }  ,
       select: {
         id: true,
         userAction: true,
@@ -58,13 +59,17 @@ export default async function ProjectPage({
         description={project.description ?? "No description"}
         leftContent={<ModuleList modules={project.modules} projectId={projectId} />}
         rightContent={
-          <div>
+          
             <CreateModuleForm projectId={projectId} />
-            <ProjectBehaviorClient
+            
+          
+        }
+        extraRightContent={
+          <ProjectBehaviorClient
               projectId={project.id}
               existingBehaviors={behaviors}
             />
-          </div>
+
         }
       />
     );

@@ -1,13 +1,20 @@
 @import "tailwindcss";
 
 @plugin "tailwindcss-animate";
-@import "tailwindcss/preflight";
+/* @import "tailwindcss/preflight"; */
 @import "tailwindcss/utilities";
 
 @custom-variant dark (&:is(.dark *));
 
-main {
-  padding-top: 5rem !important;
+/* main {
+  padding: 3 rem !important
+  
+} */
+ @layer base {
+  .google-map * {
+    border-style: none;
+   
+  }
 }
 
 /* @theme inline {

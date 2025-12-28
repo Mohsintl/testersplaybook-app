@@ -81,14 +81,13 @@ model Project {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-
   // Relations
-  owner       User            @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members     ProjectMember[]
-  modules     Module[]
-  testCases   TestCase[]
-  testRuns    TestRun[]
-  behaviors   ProjectBehavior[]
+  owner     User              @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members   ProjectMember[]
+  modules   Module[]
+  testCases TestCase[]
+  testRuns  TestRun[]
+  behaviors ProjectBehavior[]
 
   bugs        Bug[]
   invitations Invitation[]
@@ -112,16 +111,17 @@ model ProjectMember {
 }
 
 model Module {
-  id        String   @id @default(cuid())
-  name      String
-  description String? 
-  projectId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  projectId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
-  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   testCases TestCase[]
+  behaviors ProjectBehavior[]
 
   @@map("modules")
 }
@@ -287,14 +287,26 @@ model AIUsage {
   @@index([userId, action, createdAt])
 }
 
+enum BehaviorScope {
+  PROJECT
+  MODULE
+}
+
 model ProjectBehavior {
-  id          String   @id @default(cuid())
-  projectId   String
-  userAction  String
+  id String @id @default(cuid())
+
+  projectId String
+  moduleId  String? // null when GLOBAL
+
+  scope        BehaviorScope
+  userAction   String
   systemResult String
-  createdAt  DateTime @default(now())
+  createdAt    DateTime      @default(now())
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@map("project_behaviors")
+  module Module? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([moduleId])
 }

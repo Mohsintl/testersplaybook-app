@@ -15,7 +15,10 @@ export async function GET(
   }
 
   const behaviors = await prisma.projectBehavior.findMany({
-    where: { projectId: params.projectId },
+    where: { 
+      projectId: params.projectId ,
+       scope: "PROJECT" ,
+      },
     orderBy: { createdAt: "asc" },
   });
 
@@ -48,6 +51,7 @@ export async function POST(
     const behavior = await prisma.projectBehavior.create({
       data: {
         projectId,
+        scope: "PROJECT",
         userAction,
         systemResult,
       },
