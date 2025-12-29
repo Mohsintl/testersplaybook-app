@@ -2,35 +2,43 @@
 
 import { useState } from "react";
 
+type TestCase = {
+  id: string;
+  title: string;
+};
+
+type ReviewResult = {
+  overall_quality?: "LOW" | "MEDIUM" | "HIGH";
+  risk_areas?: string[];
+  missing_coverage?: string[];
+  duplicate_test_cases?: {
+    test_case_ids: string[];
+    reason: string;
+  }[];
+  title_issues?: {
+    testCaseId: string;
+    reason: string;
+    suggested_title: string;
+  }[];
+};
 
 export default function ModuleAIReview({
-  moduleId,testCases=[],
+  moduleId,
+  testCases = [], // ✅ SAFE DEFAULT
 }: {
   moduleId: string;
-   testCases?: {
-    id: string;
-    title: string;
-  }[];
+  testCases?: TestCase[];
 }) {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
-  const [isVisible, setIsVisible] = useState(true);
+  const [result, setResult] = useState<ReviewResult | null>(null);
 
-  if (!isVisible) return null;
-
-  type ModuleReviewResult = {
-  overall_quality: "LOW" | "MEDIUM" | "HIGH";
-  risk_areas: string[];
-  missing_coverage: string[];
-  duplicate_test_cases: string[];
-};
-if (!testCases || testCases.length === 0) {
-  return (
-    <div style={{ padding: "12px", color: "#666" }}>
-      No test cases available for AI review.
-    </div>
-  );
-}
+  if (!Array.isArray(testCases) || testCases.length === 0) {
+    return (
+      <div style={{ padding: 12, color: "#666" }}>
+        No test cases available for AI review.
+      </div>
+    );
+  }
 
   async function handleReview() {
     setLoading(true);
@@ -42,106 +50,100 @@ if (!testCases || testCases.length === 0) {
     });
 
     const json = await res.json();
-    setResult(json.data);
+
+    // ✅ NORMALIZE RESULT
+    setResult({
+      overall_quality: json?.data?.overall_quality ?? "LOW",
+      risk_areas: json?.data?.risk_areas ?? [],
+      missing_coverage: json?.data?.missing_coverage ?? [],
+      duplicate_test_cases: json?.data?.duplicate_test_cases ?? [],
+      title_issues: json?.data?.title_issues ?? [],
+    });
+
     setLoading(false);
   }
-  function QualityBadge({ quality }: { quality: string }) {
-  const color =
-    quality === "HIGH" ? "green" :
-    quality === "MEDIUM" ? "orange" :
-    "red";
+
+  const getTitle = (id: string) =>
+    testCases.find((t) => t.id === id)?.title ?? "Unknown test case";
 
   return (
-    <span style={{ color, fontWeight: 600 }}>
-      {quality}
-    </span>
-  );
-}
+    <div style={{ marginTop: 24 }}>
+      <button onClick={handleReview} disabled={loading}>
+        {loading ? "Reviewing…" : "🤖 Review Module"}
+      </button>
 
-const getTitleById = (id: string) => {
-  if (!testCases || testCases.length === 0) return "Unknown test case";
-  return (
-    testCases.find(tc => tc.id === id)?.title ??
-    "Unknown test case"
-  );
-};
+      {result && (
+        <div style={{ marginTop: 20 }}>
+          <h3>
+            Overall Quality:{" "}
+            <strong>{result.overall_quality}</strong>
+          </h3>
 
-function renderItem(item: any) {
-  if (typeof item === "string") {
-    return item;
-  }
+          <Section title="✏️ Title Issues">
+            {result.title_issues!.length === 0
+              ? "None"
+              : result.title_issues!.map((t, i) => (
+                  <div key={i}>
+                    <strong>{getTitle(t.testCaseId)}</strong>
+                    <br />
+                    Reason: {t.reason}
+                    <br />
+                    Suggested: <em>{t.suggested_title}</em>
+                  </div>
+                ))}
+          </Section>
 
-  // Duplicate test case object
-  if (item.test_case_ids && item.reason) {
-    return (
-      <>
-        <strong>Cases:</strong> <ul>
-        {item.test_case_ids.map((id: string) => (
-          <li key={id}>{getTitleById(id)}</li>
-        ))}
-      </ul> <br />
-        <strong>Reason:</strong> {item.reason}
-      </>
-    );
-  }
+          <Section title="🔁 Duplicate Test Cases">
+            {result.duplicate_test_cases!.length === 0
+              ? "None"
+              : result.duplicate_test_cases!.map((d, i) => (
+                  <div key={i}>
+                    <strong>Cases:</strong>
+                    <ul>
+                      {d.test_case_ids.map((id) => (
+                        <li key={id}>{getTitle(id)}</li>
+                      ))}
+                    </ul>
+                    Reason: {d.reason}
+                  </div>
+                ))}
+          </Section>
 
-  // Fallback (safe)
-  return JSON.stringify(item);
-}
+          <Section title="🧩 Missing Coverage">
+            {result.missing_coverage!.length === 0
+              ? "None"
+              : result.missing_coverage!.join(", ")}
+          </Section>
 
-function Section({
-  title,
-  items,
-}: {
-  title: string;
-  items: any[];
-}) {
-  return (
-    <div style={{ marginTop: 12 }}>
-      <h4>{title}</h4>
+          <Section title="⚠️ Risk Areas">
+            {result.risk_areas!.length === 0
+              ? "None"
+              : result.risk_areas!.join(", ")}
+          </Section>
 
-      {items.length === 0 ? (
-        <p style={{ color: "#666" }}>None</p>
-      ) : (
-        <ul>
-          {items.map((item, i) => (
-            <li key={i}>
-              {renderItem(item)}
-            </li>
-          ))}
-        </ul>
+          <button
+            onClick={() => setResult(null)}
+            style={{ marginTop: 12, color: "red" }}
+          >
+            Close
+          </button>
+        </div>
       )}
     </div>
   );
 }
 
-
-
-
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div style={{ marginTop: 24 }}>
-      
-      <button onClick={handleReview} disabled={loading}>
-        {loading ? "Reviewing…" : "🤖 Review module"}
-      </button>
-{result && (
-  <div style={{ marginTop: 20 }}>
-    <h3>
-      Overall Quality:{" "}
-      <QualityBadge quality={result.overall_quality} />
-    </h3>
-
-    <Section title="⚠️ Risk Areas" items={result.risk_areas} />
-    <Section title="🧩 Missing Coverage" items={result.missing_coverage} />
-    <Section title="🔁 Duplicate Test Cases" items={result.duplicate_test_cases} />
-
-    <button onClick={() => setResult(null)} style={{ marginTop: 12, color: 'red' }}>
-      Close
-    </button>
-  </div>
-)}
-
+    <div style={{ marginTop: 12 }}>
+      <h4>{title}</h4>
+      <div>{children}</div>
     </div>
   );
 }
-

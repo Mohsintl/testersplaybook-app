@@ -79,7 +79,7 @@ const behaviors = module
           <div className="flex gap-4 mt-4">
             <ModuleAIReview
               moduleId={moduleId}
-              testCases={testCases.map((tc) => ({
+              testCases={(testCases || []).map((tc) => ({
                 id: tc.id,
                 title: tc.title,
               }))}
