@@ -43,7 +43,7 @@ export default function ModuleAIReview({
   async function handleReview() {
     setLoading(true);
 
-    const res = await fetch("/api/ai/module/review", {
+    const res = await fetch("/api/ai/module/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ moduleId }),

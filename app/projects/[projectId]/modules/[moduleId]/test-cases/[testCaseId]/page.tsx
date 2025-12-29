@@ -53,7 +53,7 @@ export default async function TestCaseDetailPage({
         title: testCase.title,
         steps: testCase.steps as string[],
         expected: testCase.expected,
-        tags: testCase.tags,
+        // tags: testCase.tags,
         projectName: testCase.project.name,
         moduleName: testCase.module?.name ?? "",
       }}
