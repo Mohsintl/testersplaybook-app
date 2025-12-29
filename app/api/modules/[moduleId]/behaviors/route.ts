@@ -46,3 +46,38 @@ export async function POST(
 
   return NextResponse.json({ success: true, data: behavior });
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { moduleId: string } }
+) {
+  const session = await getAuthSession();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { moduleId } = await params;
+  if (!moduleId) {
+    return NextResponse.json({ error: "moduleId missing" }, { status: 400 });
+  }
+
+  const { id } = await req.json();
+  if (!id) {
+    return NextResponse.json({ error: "Behavior ID missing" }, { status: 400 });
+  }
+
+  const behavior = await prisma.projectBehavior.findUnique({
+    where: { id },
+    select: { moduleId: true },
+  });
+
+  if (!behavior || behavior.moduleId !== moduleId) {
+    return NextResponse.json({ error: "Behavior not found" }, { status: 404 });
+  }
+
+  await prisma.projectBehavior.delete({
+    where: { id },
+  });
+
+  return NextResponse.json({ success: true });
+}

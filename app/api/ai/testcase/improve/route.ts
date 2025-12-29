@@ -10,67 +10,103 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { testCaseId, title, steps, expected } = await req.json();
-
-  if (!testCaseId || !title || !steps || !expected) {
-    return NextResponse.json(
-      { error: "testCaseId, title, steps, expected are required" },
-      { status: 400 }
-    );
+  const { testCaseId } = await req.json();
+  if (!testCaseId) {
+    return NextResponse.json({ error: "testCaseId required" }, { status: 400 });
   }
 
-  // 🔒 Rate limit
   await checkAndRecordAIUsage(session.user.id, "improve");
 
+  /**
+   * Fetch test case + module + project
+   */
   const testCase = await prisma.testCase.findUnique({
     where: { id: testCaseId },
     include: {
       module: {
-        select: {
-          name: true,
-          description: true,
-          project: {
-            select: {
-              name: true,
-              description: true,
-            },
-          },
+        include: {
+          project: true,
         },
       },
     },
   });
 
   if (!testCase || !testCase.module) {
-    return NextResponse.json(
-      { error: "Test case context not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Test case not found" }, { status: 404 });
   }
 
+  /**
+   * Fetch behaviors
+   */
+  const [projectBehaviors, moduleBehaviors] = await Promise.all([
+    prisma.projectBehavior.findMany({
+      where: {
+        projectId: testCase.module.projectId,
+        scope: "PROJECT",
+      },
+      select: { userAction: true, systemResult: true },
+    }),
+    prisma.projectBehavior.findMany({
+      where: {
+        moduleId: testCase.moduleId!,
+        scope: "MODULE",
+      },
+      select: { userAction: true, systemResult: true },
+    }),
+  ]);
+
+  /**
+   * Prompt
+   */
   const prompt = `
-You are a senior QA engineer.
+You are a senior QA engineer reviewing and improving a test case.
 
+====================
 PROJECT CONTEXT
-Name: ${testCase.module.project.name}
-Description: ${testCase.module.project.description ?? "Not provided"}
+====================
+Project: ${testCase.module.project.name}
+Description:
+${testCase.module.project.description ?? "No description provided"}
 
+Project behaviors:
+${projectBehaviors.length === 0
+  ? "- None provided"
+  : projectBehaviors
+      .map(b => `- When user ${b.userAction}, system ${b.systemResult}`)
+      .join("\n")
+}
+
+====================
 MODULE CONTEXT
-Name: ${testCase.module.name}
-Description: ${testCase.module.description ?? "Not provided"}
+====================
+Module: ${testCase.module.name}
+Description:
+${testCase.module.description ?? "No description provided"}
 
-TEST CASE TO IMPROVE
-Title: ${title}
-Steps: ${JSON.stringify(steps, null, 2)}
-Expected: ${expected}
+Module behaviors:
+${moduleBehaviors.length === 0
+  ? "- None provided"
+  : moduleBehaviors
+      .map(b => `- When user ${b.userAction}, system ${b.systemResult}`)
+      .join("\n")
+}
 
-TASK:
-Improve this test case while preserving its intent.
+====================
+CURRENT TEST CASE
+====================
+Title: ${testCase.title}
+Steps: ${JSON.stringify(testCase.steps)}
+Expected: ${testCase.expected}
 
-RULES:
-- Do NOT change the scenario meaning
-- Improve clarity, precision, and structure
-- Align wording with project & module context
-- Avoid adding unnecessary steps
+====================
+INSTRUCTIONS
+====================
+Improve the test case by:
+- Making steps precise and unambiguous
+- Aligning steps with actual behaviors
+- Improving expected result clarity
+- NOT changing the intent
+- NOT adding unrelated flows
 
 Return ONLY valid JSON:
 {
@@ -86,16 +122,11 @@ Return ONLY valid JSON:
     temperature: 0.2,
   });
 
-  const content = completion.choices[0].message.content;
+  const content = completion.choices[0].message.content ?? "";
+  const clean = content.replace(/```json|```/g, "").trim();
 
-  if (!content) {
-    return NextResponse.json(
-      { error: "Empty AI response" },
-      { status: 500 }
-    );
-  }
-
-  const data = JSON.parse(content);
-
-  return NextResponse.json({ success: true, data });
+  return NextResponse.json({
+    success: true,
+    data: JSON.parse(clean),
+  });
 }

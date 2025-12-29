@@ -30,13 +30,15 @@ export default async function ModulePage({
     },
   });
 
-  const behaviors = await prisma.projectBehavior.findMany({
-  where: {
-     moduleId: module.id,
-    scope: "MODULE",
-  },
-  orderBy: { createdAt: "desc" },
-});
+const behaviors = module
+  ? await prisma.projectBehavior.findMany({
+      where: {
+        moduleId: module.id,
+        scope: "MODULE",
+      },
+      orderBy: { createdAt: "desc" },
+    })
+  : [];
 
 
   if (!module || module.projectId !== projectId) {

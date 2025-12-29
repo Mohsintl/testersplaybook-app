@@ -50,7 +50,7 @@ export default function ModuleAIGenerate({
         throw new Error(json.error || "AI generation failed");
       }
 
-      setGenerated(json.data.generated_test_cases ?? []);
+   setGenerated(Array.isArray(json.data) ? json.data : []);
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {

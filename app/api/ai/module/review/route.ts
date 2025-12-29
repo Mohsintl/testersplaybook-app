@@ -103,7 +103,7 @@ Analyze the module test coverage and return ONLY valid JSON.
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Invalid JSON response from AI", details: error.message },
+      { error: "Invalid JSON response from AI", details: (error instanceof Error ? error.message : "Unknown error") },
       { status: 500 }
     );
   }

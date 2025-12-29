@@ -102,7 +102,7 @@ export default function ProjectBehaviorClient({
         <ul style={{ marginBottom: "16px" }}>
           {existingBehaviors.map((behavior) => (
             <li key={behavior.id} style={{ marginBottom: "6px" }}>
-              <strong>{behavior.userAction}</strong> → {behavior.systemResult}
+             👉 <strong>{behavior.userAction}</strong> → {behavior.systemResult}
               <button
                 onClick={() => handleDelete(behavior.id)}
                 style={{
@@ -111,7 +111,7 @@ export default function ProjectBehaviorClient({
                   cursor: "pointer",
                 }}
               >
-                Delete
+               ✕ Delete
               </button>
             </li>
           ))}

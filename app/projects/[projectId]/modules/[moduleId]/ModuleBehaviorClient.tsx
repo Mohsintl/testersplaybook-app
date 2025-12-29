@@ -60,7 +60,7 @@ export default function ModuleBehaviorClient({
       if (!res.ok) throw new Error("Failed to save behavior");
 
       const newBehavior = await res.json();
-      setBehaviors((prev) => [...prev, newBehavior]);
+      setBehaviors((prev) => [...prev, newBehavior.data]); // Ensure the new behavior is added to the list dynamically
       setUserAction("");
       setSystemResult("");
     } catch (err: any) {
@@ -99,13 +99,13 @@ export default function ModuleBehaviorClient({
       {behaviors.length > 0 && (
         <ul style={{ marginBottom: "16px" }}>
           {behaviors.map((b) => (
-            <li key={`${moduleId}-${b.id}`} style={{ marginBottom: "8px" }}>
+            <li key={`${b.id}`} style={{ marginBottom: "8px" }}>
               👉 <strong>{b.userAction}</strong> → {b.systemResult}
               <button
                 onClick={() => handleDelete(b.id)}
                 style={{ marginLeft: "8px", color: "red" }}
               >
-                ✕
+                ✕ Delete
               </button>
             </li>
           ))}
