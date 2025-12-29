@@ -1,5 +1,9 @@
 export const runtime = "nodejs";
 
+// This file defines the API route for managing projects.
+// It handles operations such as creating, updating, and deleting projects.
+// The route ensures proper authentication and authorization for project-related actions.
+
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";

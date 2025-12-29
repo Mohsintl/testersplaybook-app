@@ -1,3 +1,7 @@
+// This file defines the API route for improving existing test cases using AI.
+// It integrates with OpenAI's GPT model to suggest enhancements for clarity and correctness.
+// The route ensures proper usage limits and authentication for AI-powered operations.
+
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";

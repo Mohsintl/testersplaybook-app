@@ -1,3 +1,7 @@
+// This file defines the API route for managing individual test cases.
+// It handles operations such as retrieving, updating, and deleting test cases by their ID.
+// The route ensures proper authentication and authorization for test case-related actions.
+
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";

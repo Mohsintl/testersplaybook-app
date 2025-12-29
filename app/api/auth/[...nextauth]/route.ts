@@ -1,3 +1,7 @@
+// This file handles authentication using NextAuth.js.
+// It sets up the authentication routes and integrates with Prisma for user management.
+// The [...nextauth] dynamic route allows NextAuth to handle multiple auth-related endpoints.
+
 export const runtime = "nodejs";
 
 import NextAuth, { type NextAuthOptions } from "next-auth";
