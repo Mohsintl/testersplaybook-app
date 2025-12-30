@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 
 interface Module {
   id: string;
@@ -49,57 +52,45 @@ export default function ModuleList({
   }
 
   if (modules.length === 0) {
-    return <p style={{ marginTop: "12px" }}>No modules yet.</p>;
+    return <Typography sx={{ mt: 2 }}>No modules yet.</Typography>;
   }
 
   return (
-    <ul style={{ marginTop: "12px", listStyle: "none", padding: 0 }}>
+    <Stack spacing={2} sx={{ mt: 2 }}>
       {modules.map((module) => (
-        <li
+        <Stack
           key={module.id}
-          style={{
-            marginBottom: "12px",
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-          }}
+          direction="row"
+          spacing={2}
+          alignItems="center"
         >
           <a
             href={`/projects/${projectId}/modules/${module.id}`}
-            style={{ fontWeight: 500, flex: 1 }}
+            style={{ flex: 1, textDecoration: "none", color: "inherit" }}
           >
-            {module.name}
+            <Typography variant="h6" component="span">
+              {module.name}
+            </Typography>
             {module.description && (
-              <span
-                style={{
-                  marginLeft: "12px",
-                  color: "#666",
-                  fontSize: "14px",
-                  fontWeight: 400,
-                }}
+              <Typography
+                variant="body2"
+                component="span"
+                sx={{ ml: 1, color: "text.secondary" }}
               >
                 — {module.description}
-              </span>
+              </Typography>
             )}
           </a>
-          <button
+          <Button
+            variant="contained"
+            color="error"
             onClick={() => handleDelete(module.id, module.name)}
             disabled={deleting === module.id}
-            style={{
-              padding: "6px 12px",
-              background: "#dc2626",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: deleting === module.id ? "not-allowed" : "pointer",
-              opacity: deleting === module.id ? 0.6 : 1,
-              fontSize: "14px",
-            }}
           >
             {deleting === module.id ? "Deleting..." : "Delete"}
-          </button>
-        </li>
+          </Button>
+        </Stack>
       ))}
-    </ul>
+    </Stack>
   );
 }

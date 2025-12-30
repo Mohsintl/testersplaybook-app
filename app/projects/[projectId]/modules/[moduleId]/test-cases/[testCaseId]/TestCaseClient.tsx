@@ -2,17 +2,9 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import TextField from "@mui/material/TextField";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
 
 type Props = {
   testCase: {
@@ -161,69 +153,71 @@ export default function TestCaseClient({ testCase }: Props) {
 
           {/* ACTIONS */}
           <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
-            <button onClick={() => setEditMode(true)}>✏️ Edit</button>
-            <button onClick={handleDelete} style={{ color: "red" }}>
+            <Button variant="contained" onClick={() => setEditMode(true)}>
+              ✏️ Edit
+            </Button>
+            <Button variant="contained" color="error" onClick={handleDelete}>
               🗑 Delete
-            </button>
-            <button onClick={handleImproveWithAI} disabled={aiLoading}>
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleImproveWithAI}
+              disabled={aiLoading}
+            >
               🤖 Improve with AI
-            </button>
+            </Button>
           </div>
         </>
       ) : (
-        <Form {...form}>
-          <form onSubmit={handleSubmit(handleSave)} className="space-y-4">
-            <h2 className="text-lg font-medium">Edit Test Case</h2>
-
-            <FormField
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <form onSubmit={handleSubmit(handleSave)}>
+          <Stack spacing={3}>
+            <TextField
+              label="Title"
+              variant="outlined"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              fullWidth
             />
 
-            <FormField
-              name="steps"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Steps</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={6} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <TextField
+              label="Steps"
+              variant="outlined"
+              value={steps}
+              onChange={(e) => setSteps(e.target.value)}
+              multiline
+              rows={6}
+              fullWidth
             />
 
-            <FormField
-              name="expected"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Expected Result</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={3} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <TextField
+              label="Expected Result"
+              variant="outlined"
+              value={expected}
+              onChange={(e) => setExpected(e.target.value)}
+              multiline
+              rows={3}
+              fullWidth
             />
 
-            <div className="flex gap-4">
-              <Button type="submit" disabled={loading}>
+            <Stack direction="row" spacing={2}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+              >
                 💾 Save
               </Button>
-              <Button variant="secondary" onClick={() => setEditMode(false)}>
+              <Button
+                variant="outlined"
+                onClick={() => setEditMode(false)}
+              >
                 Cancel
               </Button>
-            </div>
-          </form>
-        </Form>
+            </Stack>
+          </Stack>
+        </form>
       )}
 
       {/* AI RESULT */}
@@ -252,7 +246,9 @@ export default function TestCaseClient({ testCase }: Props) {
             <b>Expected:</b> {aiResult.improved_expected}
           </p>
 
-          <button
+          <Button
+            variant="contained"
+            color="success"
             onClick={async () => {
               await fetch(`/api/testcases/${testCase.id}/apply-ai`, {
                 method: "POST",
@@ -263,7 +259,7 @@ export default function TestCaseClient({ testCase }: Props) {
             }}
           >
             ✅ Apply AI Changes
-          </button>
+          </Button>
         </div>
       )}
 

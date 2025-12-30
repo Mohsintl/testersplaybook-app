@@ -2,16 +2,9 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import TextField from "@mui/material/TextField";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
 
 export default function CreateModuleForm({
   projectId,
@@ -25,7 +18,7 @@ export default function CreateModuleForm({
     },
   });
 
-  const { handleSubmit } = form;
+  const { handleSubmit, register } = form;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,52 +40,41 @@ export default function CreateModuleForm({
       return;
     }
 
-    // simple + reliable
     window.location.reload();
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-        <FormField
-          id="module-name"
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel htmlFor="module-name">Module Name</FormLabel>
-              <FormControl>
-                <Input {...field} id="module-name" placeholder="Module name" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Stack spacing={3} sx={{ mt: 4 }}>
+        <TextField
+          label="Module Name"
+          variant="outlined"
+          {...register("name")}
+          placeholder="Module name"
+          fullWidth
         />
 
-        <FormField
-          id="module-description"
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel htmlFor="module-description">Module Description</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  id="module-description"
-                  placeholder="Module description"
-                  className="h-24"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <TextField
+          label="Module Description"
+          variant="outlined"
+          {...register("description")}
+          placeholder="Module description"
+          multiline
+          rows={4}
+          fullWidth
         />
 
-        <Button type="submit" disabled={loading} className="ml-2">
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          disabled={loading}
+        >
           {loading ? "Creating..." : "Add Module"}
         </Button>
 
-        {error && <p className="text-red-500 mt-2">{error}</p>}
-      </form>
-    </Form>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+      </Stack>
+    </form>
   );
 }
