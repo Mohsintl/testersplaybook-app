@@ -5,6 +5,8 @@ import CreateModuleForm from "./CreateModuleForm";
 import ModuleList from "./ModuleList";
 import ProjectLayout from "../components/ProjectLayout";
 import ProjectBehaviorClient from "./ProjectBehaviorClient";
+import TestRunsClient from "../components/TestRunsClient";
+
 
 export default async function ProjectPage({
   params,
@@ -41,8 +43,10 @@ export default async function ProjectPage({
     console.log("[ProjectPage] Project data fetched successfully"); // Debug log
 
     const behaviors = await prisma.projectBehavior.findMany({
-      where: { projectId ,
-        scope: "PROJECT" }  ,
+      where: {
+        projectId,
+        scope: "PROJECT"
+      },
       select: {
         id: true,
         userAction: true,
@@ -53,23 +57,44 @@ export default async function ProjectPage({
 
     console.log(`[ProjectPage] Retrieved ${behaviors.length} behaviors`); // Debug log
 
+
+    const testRuns = await prisma.testRun.findMany({
+      where: { projectId },
+      orderBy: { startedAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        startedAt: true,
+        endedAt: true,
+      },
+    });
+
+    // Convert Date objects to ISO strings
+    const formattedTestRuns = testRuns.map((run) => ({
+      ...run,
+      startedAt: run.startedAt.toISOString(),
+      endedAt: run.endedAt ? run.endedAt.toISOString() : null,
+    }));
+
     return (
       <ProjectLayout
         title={project.name}
         description={project.description ?? "No description"}
         leftContent={<ModuleList modules={project.modules} projectId={projectId} />}
         rightContent={
-          
+          <div>
             <CreateModuleForm projectId={projectId} />
-            
-          
+            <TestRunsClient
+              projectId={projectId}
+              initialRuns={formattedTestRuns} // Use the formatted test runs
+            />
+          </div>
         }
         extraRightContent={
           <ProjectBehaviorClient
-              projectId={project.id}
-              existingBehaviors={behaviors}
-            />
-
+            projectId={project.id}
+            existingBehaviors={behaviors}
+          />
         }
       />
     );

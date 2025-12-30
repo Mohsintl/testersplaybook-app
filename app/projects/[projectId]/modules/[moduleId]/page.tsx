@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import CreateTestCaseForm from "./CreateTestCaseForm";
 import ModuleAIReview from "./ModuleAIReview";
 import ModuleAIGenerate from "./modelAIGenerate";
-import ProjectLayout from "@/app/projects/components/ProjectLayout";
+import ProjectLayout from "../../../components/ProjectLayout";
 import ModuleBehaviorClient from "./ModuleBehaviorClient";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";

@@ -64,7 +64,7 @@ model User {
   // Relations
   ownedProjects  Project[]       @relation("ProjectOwner")
   projectMembers ProjectMember[]
-  testRuns       TestRun[]
+  testRuns       TestRun[]       @relation("UserTestRuns")
   aiUsage        AIUsage[]
 
   createdBugs        Bug[]        @relation("BugCreator")
@@ -159,7 +159,7 @@ model TestRun {
 
   // Relations
   project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User         @relation("UserTestRuns", fields: [userId], references: [id], onDelete: Cascade)
   results TestResult[]
   bugs    Bug[]
 
