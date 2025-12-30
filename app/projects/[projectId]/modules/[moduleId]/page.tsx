@@ -6,7 +6,8 @@ import ModuleAIReview from "./ModuleAIReview";
 import ModuleAIGenerate from "./modelAIGenerate";
 import ProjectLayout from "@/app/projects/components/ProjectLayout";
 import ModuleBehaviorClient from "./ModuleBehaviorClient";
-
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 
 export default async function ModulePage({
   params,
@@ -30,16 +31,15 @@ export default async function ModulePage({
     },
   });
 
-const behaviors = module
-  ? await prisma.projectBehavior.findMany({
-      where: {
-        moduleId: module.id,
-        scope: "MODULE",
-      },
-      orderBy: { createdAt: "desc" },
-    })
-  : [];
-
+  const behaviors = module
+    ? await prisma.projectBehavior.findMany({
+        where: {
+          moduleId: module.id,
+          scope: "MODULE",
+        },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
 
   if (!module || module.projectId !== projectId) {
     return <p style={{ padding: "24px" }}>Module not found</p>;
@@ -55,21 +55,23 @@ const behaviors = module
       description={`Project: ${module.project.name}`}
       leftContent={
         <div>
-          <h2 className="text-lg font-medium mb-4">Test Cases</h2>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Test Cases
+          </Typography>
           {module.testCases.length === 0 ? (
-            <p>No test cases yet.</p>
+            <Typography>No test cases yet.</Typography>
           ) : (
-            <ul>
+            <Stack spacing={1}>
               {module.testCases.map((tc) => (
-                <li key={tc.id}>
-                  <a
-                    href={`/projects/${projectId}/modules/${moduleId}/test-cases/${tc.id}`}
-                  >
-                    {tc.title}
-                  </a>
-                </li>
+                <a
+                  key={tc.id}
+                  href={`/projects/${projectId}/modules/${moduleId}/test-cases/${tc.id}`}
+                  style={{ textDecoration: "none", color: "inherit" }}
+                >
+                  {tc.title}
+                </a>
               ))}
-            </ul>
+            </Stack>
           )}
         </div>
       }
@@ -86,18 +88,15 @@ const behaviors = module
             />
             <ModuleAIGenerate moduleId={module.id} />
           </div>
-          </div >}
-          extraRightContent={
-
-            <ModuleBehaviorClient
-               projectId={module.project.id}
-                moduleId={module.id}
-                existingBehaviors={behaviors}
-              />
-
- 
-          }
-      />
-   
+        </div>
+      }
+      extraRightContent={
+        <ModuleBehaviorClient
+          projectId={module.project.id}
+          moduleId={module.id}
+          existingBehaviors={behaviors}
+        />
+      }
+    />
   );
 }

@@ -20,29 +20,6 @@ export const metadata: Metadata = {
 // This file defines the layout for the entire application.
 // It includes global styles and wraps all pages with a consistent structure.
 
-function Header() {
-  return (
-    <header className="fixed top-0 left-0 w-full  text-black px-10 py-10hadow-md z-10 bg-white">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4">
-        {/* Branding */}
-        <div className="text-lg font-semibold">TestersPlaybook</div>
-
-        {/* Navigation Links */}
-        <nav className="flex items-center gap-6">
-          <a href="/" className="hover:underline">
-            Dashboard
-          </a>
-          <a href="/projects" className="hover:underline">
-            Projects
-          </a>
-          <a href="/account" className="hover:underline">
-            Account
-          </a>
-        </nav>
-      </div>
-    </header>
-  );
-}
 
 export default function RootLayout({
   children,
@@ -52,9 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased pt-5px-10`}
+     
       >
-        <Header />
+       
         {/* <main className="mt-6 max-w-5xl mx-auto pt-20 px-2"> */}
         <main className="h-screen box-border pt-7 w-full px-2 overflow-auto">
           {children}

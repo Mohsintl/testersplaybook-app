@@ -55,12 +55,13 @@ export default function CreateModuleForm({
     <Form {...form}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
         <FormField
+          id="module-name"
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Module Name</FormLabel>
+              <FormLabel htmlFor="module-name">Module Name</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Module name" />
+                <Input {...field} id="module-name" placeholder="Module name" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -68,12 +69,18 @@ export default function CreateModuleForm({
         />
 
         <FormField
+          id="module-description"
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Module Description</FormLabel>
+              <FormLabel htmlFor="module-description">Module Description</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Module description"  className="h-24"/>
+                <Input
+                  {...field}
+                  id="module-description"
+                  placeholder="Module description"
+                  className="h-24"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

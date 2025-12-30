@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 
 interface Project {
   id: string;
@@ -40,57 +43,42 @@ export default function ProjectList({ projects }: { projects: Project[] }) {
   }
 
   if (projects.length === 0) {
-    return <p style={{ marginTop: "16px" }}>No projects found.</p>;
+    return <Typography sx={{ mt: 2 }}>No projects found.</Typography>;
   }
 
   return (
-    <ul style={{ marginTop: "16px", listStyle: "none", padding: 0 }}>
+    <Stack spacing={2} sx={{ mt: 2 }}>
       {projects.map((project) => (
-        <li
+        <Stack
           key={project.id}
-          style={{
-            marginBottom: "12px",
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-          }}
+          direction="row"
+          spacing={2}
+          alignItems="center"
         >
-          <a
-            href={`/projects/${project.id}`}
-            style={{ fontWeight: 500, flex: 1 }}
-          >
-            {project.name}
+          <a href={`/projects/${project.id}`} style={{ flex: 1 }}>
+            <Typography variant="h6" component="span">
+              {project.name}
+            </Typography>
             {project.description && (
-              <span
-                style={{
-                  marginLeft: "12px",
-                  color: "#666",
-                  fontSize: "14px",
-                  fontWeight: 400,
-                }}
+              <Typography
+                variant="body2"
+                component="span"
+                sx={{ ml: 1, color: "text.secondary" }}
               >
                 — {project.description}
-              </span>
+              </Typography>
             )}
           </a>
-          <button
+          <Button
+            variant="contained"
+            color="error"
             onClick={() => handleDelete(project.id, project.name)}
             disabled={deleting === project.id}
-            style={{
-              padding: "6px 12px",
-              background: "#dc2626",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: deleting === project.id ? "not-allowed" : "pointer",
-              opacity: deleting === project.id ? 0.6 : 1,
-              fontSize: "14px",
-            }}
           >
             {deleting === project.id ? "Deleting..." : "Delete"}
-          </button>
-        </li>
+          </Button>
+        </Stack>
       ))}
-    </ul>
+    </Stack>
   );
 }

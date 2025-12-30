@@ -2,6 +2,7 @@ import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import TestCaseClient from "./TestCaseClient";
+import ProjectLayout from "@/app/projects/components/ProjectLayout";
 
 export default async function TestCaseDetailPage({
   params,
@@ -47,16 +48,19 @@ export default async function TestCaseDetailPage({
   }
 
   return (
-    <TestCaseClient
-      testCase={{
-        id: testCase.id,
-        title: testCase.title,
-        steps: testCase.steps as string[],
-        expected: testCase.expected,
-        // tags: testCase.tags,
-        projectName: testCase.project.name,
-        moduleName: testCase.module?.name ?? "",
-      }}
-    />
+    <ProjectLayout
+      title={testCase.title}
+      // description={project.description ?? "No description"}
+      leftContent={<TestCaseClient
+        testCase={{
+          id: testCase.id,
+          title: testCase.title,
+          steps: testCase.steps as string[],
+          expected: testCase.expected,
+          // tags: testCase.tags,
+          projectName: testCase.project.name,
+          moduleName: testCase.module?.name ?? "",
+        }} />} description={""} rightContent={undefined}    />
+
   );
 }
