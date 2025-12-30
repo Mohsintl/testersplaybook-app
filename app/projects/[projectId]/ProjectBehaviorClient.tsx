@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/form";
 import Button from "@mui/material/Button";
 import { Box, Collapse, TextField, Typography } from "@mui/material";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 type Behavior = {
   id: string;
@@ -31,6 +32,10 @@ export default function ProjectBehaviorClient({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [behaviors, setBehaviors] = useState(existingBehaviors);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedBehavior, setSelectedBehavior] = useState<Behavior | null>(null);
 
   const form = useForm();
 
@@ -69,24 +74,43 @@ export default function ProjectBehaviorClient({
     }
   }
 
-  async function handleDelete(behaviorId: string) {
+  const openDeleteModal = (behavior: Behavior) => {
+    setSelectedBehavior(behavior);
+    setModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setSelectedBehavior(null);
+    setModalOpen(false);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedBehavior) return;
+
+    setDeleting(selectedBehavior.id);
+    setModalOpen(false);
+
     try {
       const res = await fetch(
-        `/api/projects/${projectId}/behaviours/${behaviorId}`,
+        `/api/projects/${projectId}/behaviours/${selectedBehavior.id}`,
         {
           method: "DELETE",
         }
       );
 
       if (!res.ok) {
-        throw new Error("Failed to delete behavior");
+        alert("Failed to delete behavior");
+        return;
       }
 
-      window.location.reload(); // Refresh the page to reflect changes
+      setBehaviors((prev) => prev.filter((b) => b.id !== selectedBehavior.id));
     } catch (err) {
       console.error("Error deleting behavior:", err);
+      alert("Failed to delete behavior");
+    } finally {
+      setDeleting(null);
     }
-  }
+  };
 
   return (
     <section style={{ marginTop: "32px" }}>
@@ -99,21 +123,17 @@ export default function ProjectBehaviorClient({
       </Typography>
 
       {/* Existing behaviors */}
-      {existingBehaviors.length > 0 && (
+      {behaviors.length > 0 && (
         <ul style={{ marginBottom: "16px" }}>
-          {existingBehaviors.map((behavior) => (
+          {behaviors.map((behavior) => (
             <li key={behavior.id} style={{ marginBottom: "6px" }}>
               👉 <strong>{behavior.userAction}</strong> → {behavior.systemResult}
-              <button
-                onClick={() => handleDelete(behavior.id)}
-                style={{
-                  marginLeft: "10px",
-                  color: "red",
-                  cursor: "pointer",
-                }}
+              <Button
+                onClick={() => openDeleteModal(behavior)}
+                style={{ marginLeft: "10px", color: "red" }}
               >
                 ✕ Delete
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -195,6 +215,16 @@ export default function ProjectBehaviorClient({
           </Form>
         </Box>
       </Collapse>
+
+      {selectedBehavior && (
+        <DeleteConfirmationModal
+          open={modalOpen}
+          title="Confirm Delete"
+          message={`Are you sure you want to delete the behavior "${selectedBehavior.userAction}"? This action cannot be undone.`}
+          onConfirm={handleDelete}
+          onCancel={closeDeleteModal}
+        />
+      )}
     </section>
   );
 }

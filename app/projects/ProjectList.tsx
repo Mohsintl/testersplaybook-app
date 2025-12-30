@@ -4,6 +4,7 @@ import { useState } from "react";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 interface Project {
   id: string;
@@ -13,18 +14,29 @@ interface Project {
 
 export default function ProjectList({ projects }: { projects: Project[] }) {
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<
+    { id: string; name: string } | null
+  >(null);
 
-  async function handleDelete(projectId: string, projectName: string) {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete the project "${projectName}"? This will also delete all modules and test cases. This action cannot be undone.`
-    );
+  const openDeleteModal = (project: { id: string; name: string }) => {
+    setSelectedProject(project);
+    setModalOpen(true);
+  };
 
-    if (!confirmed) return;
+  const closeDeleteModal = () => {
+    setSelectedProject(null);
+    setModalOpen(false);
+  };
 
-    setDeleting(projectId);
+  async function handleDelete() {
+    if (!selectedProject) return;
+
+    setDeleting(selectedProject.id);
+    setModalOpen(false);
 
     try {
-      const res = await fetch(`/api/projects/${projectId}`, {
+      const res = await fetch(`/api/projects/${selectedProject.id}`, {
         method: "DELETE",
       });
 
@@ -47,38 +59,53 @@ export default function ProjectList({ projects }: { projects: Project[] }) {
   }
 
   return (
-    <Stack spacing={2} sx={{ mt: 2 }}>
-      {projects.map((project) => (
-        <Stack
-          key={project.id}
-          direction="row"
-          spacing={2}
-          alignItems="center"
-        >
-          <a href={`/projects/${project.id}`} style={{ flex: 1 }}>
-            <Typography variant="h6" component="span">
-              {project.name}
-            </Typography>
-            {project.description && (
-              <Typography
-                variant="body2"
-                component="span"
-                sx={{ ml: 1, color: "text.secondary" }}
-              >
-                — {project.description}
-              </Typography>
-            )}
-          </a>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => handleDelete(project.id, project.name)}
-            disabled={deleting === project.id}
+    <>
+      <Stack spacing={2} sx={{ mt: 2 }}>
+        {projects.map((project) => (
+          <Stack
+            key={project.id}
+            direction="row"
+            spacing={2}
+            alignItems="center"
           >
-            {deleting === project.id ? "Deleting..." : "Delete"}
-          </Button>
-        </Stack>
-      ))}
-    </Stack>
+            <a
+              href={`/projects/${project.id}`}
+              style={{ flex: 1, textDecoration: "none", color: "inherit" }}
+            >
+              <Typography variant="h6" component="span">
+                {project.name}
+              </Typography>
+              {project.description && (
+                <Typography
+                  variant="body2"
+                  component="span"
+                  sx={{ ml: 1, color: "text.secondary" }}
+                >
+                  — {project.description}
+                </Typography>
+              )}
+            </a>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => openDeleteModal(project)}
+              disabled={deleting === project.id}
+            >
+              {deleting === project.id ? "Deleting..." : "Delete"}
+            </Button>
+          </Stack>
+        ))}
+      </Stack>
+
+      {selectedProject && (
+        <DeleteConfirmationModal
+          open={modalOpen}
+          title="Confirm Delete"
+          message={`Are you sure you want to delete the project "${selectedProject.name}"? This will also delete all modules and test cases. This action cannot be undone.`}
+          onConfirm={handleDelete}
+          onCancel={closeDeleteModal}
+        />
+      )}
+    </>
   );
 }

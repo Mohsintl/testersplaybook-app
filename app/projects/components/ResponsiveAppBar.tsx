@@ -22,7 +22,7 @@ const pages = [
 ];
 const settings = [
   { name: 'Profile', href: '/api/profile' },
-  { name: 'Account', href: '/api/account' },
+  { name: 'Account', href: '/account' },
   { name: 'Dashboard', href: '/api/dashboard' },
   { name: 'Logout', action: () => signOut() },
 ];
