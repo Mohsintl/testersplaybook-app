@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import Button from "@mui/material/Button";
 
 export default function SignInPage() {
   return (
@@ -29,20 +30,14 @@ export default function SignInPage() {
           Use your Google account to continue
         </p>
 
-        <button
+        <Button
           onClick={() => signIn("google", { callbackUrl: "/projects" })}
-          style={{
-            marginTop: "24px",
-            width: "100%",
-            padding: "10px",
-            background: "black",
-            color: "white",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
+          variant="contained"
+          color="primary"
+          sx={{ mt: 3, width: "100%" }}
         >
           Continue with Google
-        </button>
+        </Button>
       </div>
     </main>
   );

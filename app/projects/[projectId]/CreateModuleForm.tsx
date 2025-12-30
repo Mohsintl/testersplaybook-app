@@ -21,6 +21,7 @@ export default function CreateModuleForm({
   const { handleSubmit, register } = form;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   async function onSubmit(data: { name: string; description: string }) {
     if (!data.name.trim()) return;
@@ -44,37 +45,50 @@ export default function CreateModuleForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Stack spacing={3} sx={{ mt: 4 }}>
-        <TextField
-          label="Module Name"
-          variant="outlined"
-          {...register("name")}
-          placeholder="Module name"
-          fullWidth
-        />
+    <div>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setShowForm(!showForm)}
+        sx={{ mb: 2 }}
+      >
+        {showForm ? "Close Form" : "Create Module"}
+      </Button>
 
-        <TextField
-          label="Module Description"
-          variant="outlined"
-          {...register("description")}
-          placeholder="Module description"
-          multiline
-          rows={4}
-          fullWidth
-        />
+      {showForm && (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Stack spacing={3} sx={{ mt: 4 }}>
+            <TextField
+              label="Module Name"
+              variant="outlined"
+              {...register("name")}
+              placeholder="Module name"
+              fullWidth
+            />
 
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          disabled={loading}
-        >
-          {loading ? "Creating..." : "Add Module"}
-        </Button>
+            <TextField
+              label="Module Description"
+              variant="outlined"
+              {...register("description")}
+              placeholder="Module description"
+              multiline
+              rows={4}
+              fullWidth
+            />
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
-      </Stack>
-    </form>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={loading}
+            >
+              {loading ? "Creating..." : "Add Module"}
+            </Button>
+
+            {error && <p style={{ color: "red" }}>{error}</p>}
+          </Stack>
+        </form>
+      )}
+    </div>
   );
 }

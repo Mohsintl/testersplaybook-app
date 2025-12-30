@@ -1,17 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import Button from "@mui/material/Button";
 import { useForm } from "react-hook-form";
+import { Box, Collapse } from "@mui/material";
+import TextField from "@mui/material/TextField";
 
 type Behavior = {
   id: string;
@@ -33,6 +26,7 @@ export default function ModuleBehaviorClient({
   const [systemResult, setSystemResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
   const form = useForm();
 
   async function handleAdd() {
@@ -103,7 +97,7 @@ export default function ModuleBehaviorClient({
               👉 <strong>{b.userAction}</strong> → {b.systemResult}
               <button
                 onClick={() => handleDelete(b.id)}
-                style={{ marginLeft: "8px", color: "red" }}
+                style={{ marginLeft: "8px", color: "red", cursor: "pointer" }} // Added cursor: pointer for hand cursor on hover
               >
                 ✕ Delete
               </button>
@@ -112,55 +106,50 @@ export default function ModuleBehaviorClient({
         </ul>
       )}
 
-      <Form {...form}>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleAdd();
-          }}
-          className="space-y-4"
-        >
-          <FormField
-            name="userAction"
-            render={() => (
-              <FormItem>
-                <FormLabel>User Action</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="User action (e.g. Clicks Save button)"
-                    value={userAction}
-                    onChange={(e) => setUserAction(e.target.value)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setShowForm((prev) => !prev)}
+        style={{ marginBottom: "16px", backgroundColor: "#ADD8E6", color: "#000" }}
+      >
+        {showForm ? "Close Add Behavior Form" : "Add Module-Level Behaviors"}
+      </Button>
 
-          <FormField
-            name="systemResult"
-            render={() => (
-              <FormItem>
-                <FormLabel>System Result</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="System result (e.g. Shows success toast)"
-                    value={systemResult}
-                    onChange={(e) => setSystemResult(e.target.value)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <Collapse in={showForm} timeout="auto" unmountOnExit>
+        <Box mt={2}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleAdd();
+            }}
+            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+          >
+            <TextField
+              label="User Action"
+              placeholder="User action (e.g. Clicks Save button)"
+              value={userAction}
+              onChange={(e) => setUserAction(e.target.value)}
+              fullWidth
+              variant="outlined"
+            />
 
-          <Button type="submit" disabled={loading}>
-            {loading ? "Saving…" : "➕ Add Module Behavior"}
-          </Button>
+            <TextField
+              label="System Result"
+              placeholder="System result (e.g. Shows success toast)"
+              value={systemResult}
+              onChange={(e) => setSystemResult(e.target.value)}
+              fullWidth
+              variant="outlined"
+            />
 
-          {error && <p className="text-red-500 mt-2">{error}</p>}
-        </form>
-      </Form>
+            <Button type="submit" variant="contained" color="primary" disabled={loading}>
+              {loading ? "Saving…" : "➕ Add Module Behavior"}
+            </Button>
+
+            {error && <p style={{ color: "red" }}>{error}</p>}
+          </form>
+        </Box>
+      </Collapse>
     </section>
   );
 }

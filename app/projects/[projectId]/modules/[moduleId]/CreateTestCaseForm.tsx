@@ -2,17 +2,9 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import TextField from "@mui/material/TextField";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
 
 export default function CreateTestCaseForm({
   projectId,
@@ -32,6 +24,7 @@ export default function CreateTestCaseForm({
   const { handleSubmit } = form;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   async function onSubmit(data: {
     title: string;
@@ -64,55 +57,62 @@ export default function CreateTestCaseForm({
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-        <h3 className="text-lg font-medium">Create Test Case</h3>
+    <div>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setShowForm(!showForm)}
+        sx={{ mb: 2 }}
+      >
+        {showForm ? "Close Form" : "Create Test Case"}
+      </Button>
 
-        <FormField
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Title" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      {showForm && (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Stack spacing={3} sx={{ mt: 4 }}>
+            <h3 className="text-lg font-medium">Create Test Case</h3>
 
-        <FormField
-          name="steps"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Steps (one per line)</FormLabel>
-              <FormControl>
-                <Textarea {...field} placeholder="Steps (one per line)" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <TextField
+              label="Title"
+              variant="outlined"
+              {...form.register("title")}
+              placeholder="Title"
+              fullWidth
+            />
 
-        <FormField
-          name="expected"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Expected Result</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Expected result" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <TextField
+              label="Steps (one per line)"
+              variant="outlined"
+              {...form.register("steps")}
+              placeholder="Steps (one per line)"
+              multiline
+              rows={6}
+              fullWidth
+            />
 
-        <Button type="submit" disabled={loading} className="ml-2">
-          {loading ? "Creating..." : "Add Test Case"}
-        </Button>
+            <TextField
+              label="Expected Result"
+              variant="outlined"
+              {...form.register("expected")}
+              placeholder="Expected result"
+              fullWidth
+            />
 
-        {error && <p className="text-red-500 mt-2">{error}</p>}
-      </form>
-    </Form>
+            <Stack direction="row" spacing={2}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+              >
+                {loading ? "Creating..." : "Add Test Case"}
+              </Button>
+            </Stack>
+
+            {error && <p style={{ color: "red" }}>{error}</p>}
+          </Stack>
+        </form>
+      )}
+    </div>
   );
 }
