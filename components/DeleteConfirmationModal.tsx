@@ -11,7 +11,7 @@ interface DeleteConfirmationModalProps {
   title: string;
   message: string;
   onConfirm: () => void;
-  onCancel: () => void;
+  onClose: () => void; // Added onClose to the props
 }
 
 const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
@@ -19,16 +19,16 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   title,
   message,
   onConfirm,
-  onCancel,
+  onClose,
 }) => {
   return (
-    <Dialog open={open} onClose={onCancel}>
+    <Dialog open={open} onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText>{message}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onCancel} color="primary">
+        <Button onClick={onClose} color="primary">
           Cancel
         </Button>
         <Button onClick={onConfirm} color="error" variant="contained">

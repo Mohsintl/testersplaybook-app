@@ -45,3 +45,29 @@ export async function GET(
     data: testRun,
   });
 }
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ testRunId: string }> }
+) {
+  const { testRunId } = await params;
+
+  const session = await getAuthSession();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const testRun = await prisma.testRun.findUnique({
+    where: { id: testRunId },
+  });
+
+  if (!testRun) {
+    return NextResponse.json({ error: "Test run not found" }, { status: 404 });
+  }
+
+  await prisma.testRun.delete({
+    where: { id: testRunId },
+  });
+
+  return NextResponse.json({ success: true });
+}
