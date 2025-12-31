@@ -10,8 +10,8 @@ type TestRun = {
   id: string;
   name: string;
   startedAt: string;
-  endedAt: string | null;
-  status:string;
+  endedAt: string;
+  status: string;
 };
 
 export default function TestRunsClient({
@@ -27,6 +27,20 @@ export default function TestRunsClient({
   const [runs, setRuns] = useState(initialRuns);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [runToDelete, setRunToDelete] = useState<TestRun | null>(null);
+
+  async function fetchRuns() {
+    console.log("Fetching updated runs...");
+    const res = await fetch(`/api/projects/${projectId}/test-runs`);
+    console.log("Fetch response status:", res.status);
+    const json = await res.json();
+    console.log("Fetch response data:", json);
+    if (json.success) {
+      setRuns(json.data);
+      console.log("Updated runs state:", json.data);
+    } else {
+      console.error("Failed to fetch updated runs:", json);
+    }
+  }
 
   async function handleCreate() {
     if (!name) return;
@@ -65,6 +79,7 @@ export default function TestRunsClient({
   async function handleDelete() {
     if (!runToDelete) return;
 
+    console.log("Deleting test run:", runToDelete);
     const res = await fetch(
       `/api/projects/${projectId}/test-runs/${runToDelete.id}`,
       {
@@ -72,12 +87,15 @@ export default function TestRunsClient({
       }
     );
 
+    console.log("Delete response status:", res.status);
     if (res.ok) {
-      setRuns(runs.filter(run => run.id !== runToDelete.id));
+      console.log("Test run deleted successfully.");
+      await fetchRuns(); // Fetch updated runs after deletion
       setDeleteModalOpen(false);
       setRunToDelete(null);
+    } else {
+      console.error("Failed to delete test run:", await res.json());
     }
-    router.refresh();
   }
 
   return (

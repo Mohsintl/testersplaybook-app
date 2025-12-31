@@ -64,6 +64,7 @@ export default async function ProjectPage({
       select: {
         id: true,
         name: true,
+        status: true,
         startedAt: true,
         endedAt: true,
       },

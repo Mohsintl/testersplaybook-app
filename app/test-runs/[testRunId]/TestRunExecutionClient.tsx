@@ -56,6 +56,7 @@ export default function TestRunExecutionClient({
     modules: ModuleExecution[];
     endedAt: string ;
     startedAt: string;
+    results: TestResult[];
   };
 }) {
   /* ---------------- STATE ---------------- */
