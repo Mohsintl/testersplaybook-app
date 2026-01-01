@@ -11,7 +11,7 @@ type TestRun = {
   name: string;
   startedAt: string;
   endedAt: string;
-  status: string;
+  status: string |null;
 };
 
 export default function TestRunsClient({
