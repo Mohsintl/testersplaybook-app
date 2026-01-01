@@ -10,8 +10,8 @@ type TestRun = {
   id: string;
   name: string;
   startedAt: string;
-  endedAt: string;
-  status: string |null;
+  endedAt: string|null;
+  status: string ;
 };
 
 export default function TestRunsClient({
