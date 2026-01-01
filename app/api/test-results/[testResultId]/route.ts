@@ -30,6 +30,17 @@ export async function PATCH(
   if (!result) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
+if (
+  testRun.assignedToId &&
+  testRun.assignedToId !== session.user.id &&
+  testRun.project.ownerId !== session.user.id
+) {
+  return NextResponse.json(
+    { error: "Not assigned to this test run" },
+    { status: 403 }
+  );
+}
+
 
   if (result.testRun.status === "COMPLETED") {
     return NextResponse.json(

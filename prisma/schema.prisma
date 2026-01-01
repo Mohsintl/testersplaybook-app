@@ -160,7 +160,7 @@ model TestRun {
   name         String
   projectId    String
   userId       String
-  assignedToId String
+  assignedToId String?
   startedAt    DateTime               @default(now())
   endedAt      DateTime?
   status       TestRunExecutionStatus @default(IN_PROGRESS)

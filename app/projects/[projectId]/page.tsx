@@ -65,6 +65,7 @@ export default async function ProjectPage({
         id: true,
         name: true,
         status: true,
+        assignedToId: true,
         startedAt: true,
         endedAt: true,
       },
@@ -77,6 +78,21 @@ export default async function ProjectPage({
       endedAt: run.endedAt ? run.endedAt.toISOString() : null,
     }));
 
+
+    const projectMembers = await prisma.projectMember.findMany({
+  where: { projectId },
+  select: {
+    role: true,
+    user: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    },
+  },
+});
+
     return (
       <ProjectLayout
         title={project.name}
@@ -88,6 +104,7 @@ export default async function ProjectPage({
             <TestRunsClient
               projectId={projectId}
               initialRuns={formattedTestRuns} // Use the formatted test runs
+              members={projectMembers}
             />
           </div>
         }

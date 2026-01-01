@@ -5,21 +5,35 @@ import { useRouter } from "next/navigation";
 import Button from "@mui/material/Button";
 import Link from "next/link";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
+import { MenuItem, Select } from "@mui/material";
 
 type TestRun = {
   id: string;
   name: string;
   startedAt: string;
-  endedAt: string|null;
-  status: string ;
+  endedAt: string | null;
+  status: string;
+  assignedToId?: string | null;
 };
+
+type ProjectMember = {
+  role: "OWNER" | "CONTRIBUTOR";
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
+};
+
 
 export default function TestRunsClient({
   projectId,
   initialRuns,
+  members,
 }: {
   projectId: string;
   initialRuns: TestRun[];
+  members: ProjectMember[];
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -112,6 +126,8 @@ export default function TestRunsClient({
           onChange={e => setName(e.target.value)}
           style={{ padding: 8, flex: 1 }}
         />
+        
+
         <Button
           variant="contained"
           onClick={handleCreate}
@@ -133,6 +149,30 @@ export default function TestRunsClient({
                 {run.status === "COMPLETED" ? "Completed" : "In Progress"}
               </span>
             </div>
+            <div>
+              <Select
+                size="small"
+                value={run.assignedToId ?? ""}
+                onChange={async (e) => {
+                  await fetch(`/api/test-runs/${run.id}/assign`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: e.target.value }),
+                  });
+                  router.refresh();
+                }}
+              >
+                <MenuItem value="">Unassigned</MenuItem>
+                {members.map((m) => (
+                  <MenuItem key={m.user.id} value={m.user.id}>
+                    {m.user.name || m.user.email }
+                    {m.role === "OWNER" ? " (Owner)" : ""}
+                  </MenuItem>
+                ))}
+              </Select>
+
+            </div>
+
             <Button
               variant="outlined"
               color="error"
@@ -147,6 +187,7 @@ export default function TestRunsClient({
           </li>
         ))}
       </ul>
+
 
       <DeleteConfirmationModal
         open={deleteModalOpen}
