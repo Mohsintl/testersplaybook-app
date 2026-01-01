@@ -67,6 +67,7 @@ export async function GET(
       name: true,
       startedAt: true,
       endedAt: true,
+      status: true, // Include the status field
     },
   });
 
