@@ -47,7 +47,8 @@ enum AutomationStatus {
   FLAKY
   NOT_AUTOMATED
 }
-enum TestRunExecutionStatus{
+
+enum TestRunExecutionStatus {
   IN_PROGRESS
   COMPLETED
 }
@@ -66,10 +67,11 @@ model User {
   sessions Session[]
 
   // Relations
-  ownedProjects  Project[]       @relation("ProjectOwner")
-  projectMembers ProjectMember[]
-  testRuns       TestRun[]       @relation("UserTestRuns")
-  aiUsage        AIUsage[]
+  ownedProjects    Project[]       @relation("ProjectOwner")
+  projectMembers   ProjectMember[]
+  testRuns         TestRun[]       @relation("UserTestRuns")
+  aiUsage          AIUsage[]
+  assignedTestRuns TestRun[]       @relation("AssignedRuns")
 
   createdBugs        Bug[]        @relation("BugCreator")
   createdInvitations Invitation[] @relation("InvitationCreator")
@@ -154,19 +156,21 @@ model TestCase {
 }
 
 model TestRun {
-  id        String    @id @default(cuid())
-  name      String
-  projectId String
-  userId    String
-  startedAt DateTime  @default(now())
-  endedAt   DateTime?
-  status    TestRunExecutionStatus @default(IN_PROGRESS)
+  id           String                 @id @default(cuid())
+  name         String
+  projectId    String
+  userId       String
+  assignedToId String
+  startedAt    DateTime               @default(now())
+  endedAt      DateTime?
+  status       TestRunExecutionStatus @default(IN_PROGRESS)
 
   // Relations
-  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user    User         @relation("UserTestRuns", fields: [userId], references: [id], onDelete: Cascade)
-  results TestResult[]
-  bugs    Bug[]
+  project    Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user       User         @relation("UserTestRuns", fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo User?        @relation("AssignedRuns", fields: [assignedToId], references: [id])
+  results    TestResult[]
+  bugs       Bug[]
 
   @@map("test_runs")
 }
