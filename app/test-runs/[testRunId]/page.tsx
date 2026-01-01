@@ -49,24 +49,44 @@ export default async function TestRunPage({
     return <p style={{ padding: 24 }}>Test run not found</p>;
   }
 
-  const summary = calculateTestRunSummary(testRun.results);
+  // Normalize `testCase.steps` which comes from a JSON column (JsonValue)
+  // into a `string[]` that the client expects.
+  const normalizeSteps = (raw: any): string[] => {
+    if (Array.isArray(raw)) return raw.map(String);
+    if (raw == null) return [];
+    try {
+      const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+      return Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const normalizedResults = testRun.results.map((r) => ({
+    ...r,
+    testCase: {
+      ...r.testCase,
+      steps: normalizeSteps((r.testCase as any).steps),
+    },
+  }));
+
+  const summary = calculateTestRunSummary(normalizedResults);
 
   const modulesMap = new Map<string, any>();
+  for (const result of normalizedResults) {
+    const module = result.testCase.module;
+    const moduleId = module?.id ?? "unassigned";
 
-for (const result of testRun.results) {
-  const module = result.testCase.module;
-  const moduleId = module?.id ?? "unassigned";
+    if (!modulesMap.has(moduleId)) {
+      modulesMap.set(moduleId, {
+        id: moduleId,
+        name: module?.name ?? "Unassigned",
+        results: [],
+      });
+    }
 
-  if (!modulesMap.has(moduleId)) {
-    modulesMap.set(moduleId, {
-      id: moduleId,
-      name: module?.name ?? "Unassigned",
-      results: [],
-    });
+    modulesMap.get(moduleId).results.push(result);
   }
-
-  modulesMap.get(moduleId).results.push(result);
-}
 
   return (
     <TestRunExecutionClient
@@ -76,7 +96,7 @@ for (const result of testRun.results) {
         projectName: testRun.project.name,
         startedAt: testRun.startedAt.toISOString(),
         endedAt: testRun.endedAt ? testRun.endedAt.toISOString() : "",
-        results: testRun.results,
+        results: normalizedResults,
         summary,
         modules: Array.from(modulesMap.values()),
       }}
