@@ -2,7 +2,7 @@ import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import TestCaseClient from "./TestCaseClient";
-import ProjectLayout from "@/app/projects/_components/ProjectLayout";
+import ProjectLayout from "@/app/projects/components/ProjectLayout";
 
 export default async function TestCaseDetailPage({
   params,
