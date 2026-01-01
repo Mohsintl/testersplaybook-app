@@ -26,7 +26,6 @@ export default function TestCaseClient({ testCase }: Props) {
     },
   });
 
-  const { handleSubmit } = form;
 
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -170,7 +169,7 @@ export default function TestCaseClient({ testCase }: Props) {
           </div>
         </>
       ) : (
-        <form onSubmit={handleSubmit(handleSave)}>
+        <form onSubmit={(e) => { e.preventDefault(); handleSave({ title, steps, expected }); }}>
           <Stack spacing={3}>
             <TextField
               label="Title"
