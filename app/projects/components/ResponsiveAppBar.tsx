@@ -24,7 +24,7 @@ const settings = [
   { name: 'Profile', href: '/api/profile' },
   { name: 'Account', href: '/account' },
   { name: 'Dashboard', href: '/api/dashboard' },
-  { name: 'Logout', action: () => signOut() },
+  { name: 'Logout', action: () => signOut({callbackUrl:"/"}) },
 ];
 
 function ResponsiveAppBar() {

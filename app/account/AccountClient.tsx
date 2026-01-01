@@ -103,7 +103,7 @@ export default function AccountClient({ user }: Props) {
       <hr style={{ margin: "32px 0" }} />
 
       <button
-        onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+        onClick={() => signOut({ callbackUrl: "/" })}
         style={{
           padding: "10px 14px",
           background: "#ef4444",
