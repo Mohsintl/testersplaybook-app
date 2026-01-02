@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
-import { getProjectMember } from "@/lib/project-access";
+import { getProjectMemberRole } from "@/lib/project-access";
 import prisma from "@/lib/prisma";
 
 export async function DELETE(
@@ -16,7 +16,7 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const role = await getProjectMember(projectId, session.user.id);
+  const role = await getProjectMemberRole(projectId, session.user.id);
   
   // Only OWNER can delete the project
   if (role !== "OWNER") {

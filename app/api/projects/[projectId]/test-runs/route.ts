@@ -2,7 +2,9 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
+
 import prisma from "@/lib/prisma";
+import { getProjectMemberRole } from "@/lib/project-access";
 
 export async function POST(
   req: Request,
@@ -22,6 +24,16 @@ export async function POST(
       { status: 400 }
     );
   }
+  const role = await getProjectMemberRole(projectId, session.user.id);
+
+if (!role) {
+  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+}
+
+if (role !== "OWNER") {
+  return NextResponse.json({ error: "Only owner allowed" }, { status: 403 });
+}
+
 
   // Fetch all test cases for the project
   const testCases = await prisma.testCase.findMany({

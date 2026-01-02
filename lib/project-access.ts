@@ -1,8 +1,7 @@
-import prisma from '@/lib/prisma';
-
+import prisma from "@/lib/prisma";
 import { Role } from "@prisma/client";
 
-export async function getProjectMember(
+export async function getProjectMemberRole(
   projectId: string,
   userId: string
 ): Promise<Role | null> {
@@ -13,6 +12,7 @@ export async function getProjectMember(
         projectId,
       },
     },
+    select: { role: true },
   });
 
   return member?.role ?? null;

@@ -3,17 +3,28 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { getProjectMemberRole } from "@/lib/project-access";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ testRunId: string }> }
+  { params }: { params: Promise<{ projectId: string; testRunId: string }> }
 ) {
-  const { testRunId } = await params;
+  const { projectId, testRunId } = await params;
 
   const session = await getAuthSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const role = await getProjectMemberRole(projectId, session.user.id);
+
+if (!role) {
+  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+}
+
+if (role !== "OWNER") {
+  return NextResponse.json({ error: "Only owner allowed" }, { status: 403 });
+}
+
 
   const testRun = await prisma.testRun.findUnique({
     where: { id: testRunId },
@@ -48,14 +59,24 @@ export async function GET(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ testRunId: string }> }
+  { params }: { params: Promise<{ projectId: string; testRunId: string }> }
 ) {
-  const { testRunId } = await params;
+  const { projectId, testRunId } = await params;
 
   const session = await getAuthSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  const role = await getProjectMemberRole(projectId, session.user.id);
+
+if (!role) {
+  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+}
+
+if (role !== "OWNER") {
+  return NextResponse.json({ error: "Only owner allowed" }, { status: 403 });
+}
+
 
   const testRun = await prisma.testRun.findUnique({
     where: { id: testRunId },

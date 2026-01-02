@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { getProjectMember } from "@/lib/project-access";
+import { getProjectMemberRole } from "@/lib/project-access";
 
 export async function POST(
     req: Request,
@@ -25,7 +25,7 @@ export async function POST(
         return NextResponse.json({ error: "Test run not found" }, { status: 404 });
     }
 
-    const role = await getProjectMember(testRun.projectId, session.user.id);
+    const role = await getProjectMemberRole(testRun.projectId, session.user.id);
     if (!role) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }

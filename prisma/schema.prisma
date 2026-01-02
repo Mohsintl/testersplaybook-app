@@ -220,6 +220,7 @@ model Invitation {
   role      Role     @default(CONTRIBUTOR)
   projectId String
   creatorId String
+  token     String   @unique
   createdAt DateTime @default(now())
   expiresAt DateTime
 

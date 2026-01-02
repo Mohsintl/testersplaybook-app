@@ -6,6 +6,7 @@ import ModuleList from "./ModuleList";
 import ProjectLayout from "../components/ProjectLayout";
 import ProjectBehaviorClient from "./ProjectBehaviorClient";
 import TestRunsClient from "../components/TestRunsClient";
+import InviteMember from "../components/InviteMember";
 
 
 export default async function ProjectPage({
@@ -93,6 +94,10 @@ export default async function ProjectPage({
   },
 });
 
+    // Determine current user's role in this project
+    const myRole = projectMembers.find(pm => pm.user.id === session.user.id)?.role;
+    console.log(`[ProjectPage] current user role: ${myRole}`);
+
     return (
       <ProjectLayout
         title={project.name}
@@ -106,6 +111,10 @@ export default async function ProjectPage({
               initialRuns={formattedTestRuns} // Use the formatted test runs
               members={projectMembers}
             />
+            {myRole === "OWNER" && (
+                <InviteMember projectId={projectId} />
+)}
+
           </div>
         }
         extraRightContent={

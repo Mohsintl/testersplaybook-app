@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
-import { getProjectMember } from "@/lib/project-access";
+import { getProjectMemberRole } from "@/lib/project-access";
 import prisma from "@/lib/prisma";
 
 export async function POST(
@@ -16,10 +16,15 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const role = await getProjectMember(projectId, session.user.id);
-  if (!role) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const role = await getProjectMemberRole(projectId, session.user.id);
+
+if (!role) {
+  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+}
+
+if (role !== "OWNER") {
+  return NextResponse.json({ error: "Only owner allowed" }, { status: 403 });
+}
 
   const { name, description } = await request.json();
   if (!name) {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { getProjectMemberRole } from "@/lib/project-access";
 
 /* =======================
    GET: Fetch behaviors
@@ -13,6 +14,7 @@ export async function GET(
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  
 
   const behaviors = await prisma.projectBehavior.findMany({
     where: { 
@@ -36,6 +38,16 @@ export async function POST(
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+const { projectId } = await params;
+const role = await getProjectMemberRole(projectId, session.user.id);
+
+if (!role) {
+  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+}
+
+if (role !== "OWNER") {
+  return NextResponse.json({ error: "Only owner allowed" }, { status: 403 });
+}
 
   const { userAction, systemResult } = await req.json();
 
