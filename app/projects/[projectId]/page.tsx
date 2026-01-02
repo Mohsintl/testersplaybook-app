@@ -41,6 +41,7 @@ export default async function ProjectPage({
       return <p style={{ padding: "24px" }}>Project not found</p>;
     }
 
+    
     console.log("[ProjectPage] Project data fetched successfully"); // Debug log
 
     const behaviors = await prisma.projectBehavior.findMany({

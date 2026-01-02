@@ -26,9 +26,7 @@ export default async function ProjectsPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  if (projects.length === 0) {
-    redirect("/dashboard")
-  }
+  
   return (
     <ProjectLayout
       title="Projects"
