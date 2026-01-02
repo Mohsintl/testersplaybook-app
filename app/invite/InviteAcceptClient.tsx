@@ -40,7 +40,7 @@ export default function InviteAcceptClient({
       }
 
       // ✅ FORCE FULL RELOAD (refreshes session)
-      window.location.href = `/dashboard`;
+      window.location.href = `/entry`;
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
