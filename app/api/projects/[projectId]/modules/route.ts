@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import { getProjectMemberRole } from "@/lib/project-access";
 import prisma from "@/lib/prisma";
+import { canManageProject } from "@/lib/permissions";
 
 export async function POST(
   request: NextRequest,
@@ -26,6 +27,12 @@ if (role !== "OWNER") {
   return NextResponse.json({ error: "Only owner allowed" }, { status: 403 });
 }
 
+if (!canManageProject(role)) {
+  return NextResponse.json(
+    { error: "Forbidden" },
+    { status: 403 }
+  );
+}
   const { name, description } = await request.json();
   if (!name) {
     return NextResponse.json({ error: "Module name required" }, { status: 400 });

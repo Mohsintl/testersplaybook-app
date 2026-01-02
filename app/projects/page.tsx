@@ -16,16 +16,19 @@ export default async function ProjectsPage() {
     where: {
       OR: [
         { ownerId: session.user.id },
-        {
-          members: {
-            some: { userId: session.user.id },
-          },
-        },
+        // {
+        //   members: {
+        //     some: { userId: session.user.id },
+        //   },
+        // },
       ],
     },
     orderBy: { createdAt: "desc" },
   });
 
+  if (projects.length === 0) {
+    redirect("/dashboard")
+  }
   return (
     <ProjectLayout
       title="Projects"

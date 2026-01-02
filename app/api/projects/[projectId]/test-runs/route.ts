@@ -5,6 +5,7 @@ import { getAuthSession } from "@/lib/auth";
 
 import prisma from "@/lib/prisma";
 import { getProjectMemberRole } from "@/lib/project-access";
+import { canManageProject } from "@/lib/permissions";
 
 export async function POST(
   req: Request,
@@ -34,6 +35,12 @@ if (role !== "OWNER") {
   return NextResponse.json({ error: "Only owner allowed" }, { status: 403 });
 }
 
+if (!canManageProject(role)) {
+  return NextResponse.json(
+    { error: "Forbidden" },
+    { status: 403 }
+  );
+}
 
   // Fetch all test cases for the project
   const testCases = await prisma.testCase.findMany({
