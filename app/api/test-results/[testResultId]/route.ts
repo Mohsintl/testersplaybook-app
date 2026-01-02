@@ -31,12 +31,11 @@ export async function PATCH(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 if (
-  testRun.assignedToId &&
-  testRun.assignedToId !== session.user.id &&
-  testRun.project.ownerId !== session.user.id
+  result.testRun.assignedToId !== session.user.id &&
+  result.testRun.userId !== session.user.id
 ) {
   return NextResponse.json(
-    { error: "Not assigned to this test run" },
+    { error: "Forbidden" },
     { status: 403 }
   );
 }

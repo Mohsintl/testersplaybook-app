@@ -48,7 +48,12 @@ export default async function TestRunPage({
   if (!testRun) {
     return <p style={{ padding: 24 }}>Test run not found</p>;
   }
+  if(testRun.assignedToId !== session.user.id && testRun.userId !== session.user.id)
+  {
+    redirect("/dashboard");
+  }
 
+  
   // Normalize `testCase.steps` which comes from a JSON column (JsonValue)
   // into a `string[]` that the client expects.
   const normalizeSteps = (raw: any): string[] => {
