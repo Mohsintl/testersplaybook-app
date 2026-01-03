@@ -18,6 +18,7 @@ enum TestCaseType {
 }
 
 enum TestResultStatus {
+  UNTESTED
   PASSED
   FAILED
   BLOCKED
@@ -177,7 +178,7 @@ model TestRun {
 
 model TestResult {
   id         String           @id @default(cuid())
-  status     TestResultStatus
+  status     TestResultStatus @default(UNTESTED)
   notes      String?
   testCaseId String
   testRunId  String

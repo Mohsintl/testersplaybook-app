@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-type TestResultStatus = "PASSED" | "FAILED" | "BLOCKED";
+type TestResultStatus = "PASSED" | "FAILED" | "BLOCKED" | "UNTESTED";
 
 type TestResult = {
   id: string;
@@ -43,6 +43,7 @@ type ExecutionSummary = {
   passed: number;
   failed: number;
   blocked: number;
+  untested: number;
   overall: "PASSED" | "FAILED" | "PARTIAL" | "NOT_STARTED";
 };
 
@@ -76,6 +77,7 @@ export default function TestRunExecutionClient({
     const passed = allResults.filter((r) => r.status === "PASSED").length;
     const failed = allResults.filter((r) => r.status === "FAILED").length;
     const blocked = allResults.filter((r) => r.status === "BLOCKED").length;
+    const untested = allResults.filter((r) => r.status === "UNTESTED").length;
 
     let overall: ExecutionSummary["overall"] = "NOT_STARTED";
     if (failed > 0) overall = "FAILED";
@@ -88,6 +90,7 @@ export default function TestRunExecutionClient({
       passed,
       failed,
       blocked,
+      untested,
       overall,
     };
   }, [modules]);
@@ -186,6 +189,7 @@ export default function TestRunExecutionClient({
             <Chip color="success" label={`Passed: ${summary.passed}`} />
             <Chip color="error" label={`Failed: ${summary.failed}`} />
             <Chip color="warning" label={`Blocked: ${summary.blocked}`} />
+            <Chip label={`Untested: ${summary.untested}`} variant="outlined" />
           </Stack>
 
           <Typography mt={2}>
@@ -223,6 +227,19 @@ export default function TestRunExecutionClient({
                   </Typography>
 
                   <Stack direction="row" spacing={1} mt={2}>
+                    <Button
+                      variant={
+                        (result.status ?? "UNTESTED") === "UNTESTED"
+                          ? "contained"
+                          : "outlined"
+                      }
+                      color="info"
+                      disabled={isLocked}
+                      onClick={() => updateStatus(result.id, "UNTESTED")}
+                    >
+                      Untested
+                    </Button>
+
                     <Button
                       variant={
                         result.status === "PASSED" ? "contained" : "outlined"

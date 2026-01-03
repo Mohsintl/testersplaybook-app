@@ -48,16 +48,16 @@ if (!canManageProject(role)) {
     select: { id: true },
   });
 
-  // Create test run
+  // Create test run with UNTESTED default results
   const testRun = await prisma.testRun.create({
     data: {
       name,
       projectId,
       userId: session.user.id,
       results: {
-        create: testCases.map(tc => ({
+        create: testCases.map((tc) => ({
           testCaseId: tc.id,
-          status: "BLOCKED", // default
+          status: "UNTESTED",
         })),
       },
     },
