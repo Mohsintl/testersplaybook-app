@@ -7,7 +7,7 @@ export default async function Page() {
   const session = await getServerSession(authOptions);
 
   if (session?.user) {
-    redirect("/entry");
+    redirect("/projects");
   }
 
   return <LandingPage />;

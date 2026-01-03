@@ -9,31 +9,39 @@ export default async function ProjectsPage() {
   const session = await getAuthSession();
 
   if (!session?.user?.id) {
-    redirect("/api/auth/signin");
+    redirect("/");
   }
 
   const projects = await prisma.project.findMany({
     where: {
-      OR: [
-        { ownerId: session.user.id },
-        {
-          members: {
-            some: { userId: session.user.id },
-          },
-        },
-      ],
+     members: {
+      some: {userId: session.user.id},
+     },
+    },
+    include: {
+            owner: true,
+      members: {
+        where: { userId: session.user.id },
+        select:{
+          role: true,
+        }
+      },
     },
     orderBy: { createdAt: "desc" },
   });
-if (projects.length === 0) {
-    redirect("/welcome");
-  }
+
+  const projectsWithRole = projects.map((project) =>  ({
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    role: project.members[0]?.role ?? "CONTRIBUTOR",
+  }));  
   
   return (
     <ProjectLayout
       title="Projects"
       description="Manage your projects"
-      leftContent={<ProjectList projects={projects} />}
+      leftContent={<ProjectList projects={projectsWithRole} />}
       rightContent={<CreateProjectForm />}
     />
   );

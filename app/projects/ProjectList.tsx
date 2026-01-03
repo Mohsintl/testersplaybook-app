@@ -4,12 +4,15 @@ import { useState } from "react";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
+import Chip from "@mui/material/Chip";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 interface Project {
   id: string;
   name: string;
   description: string | null;
+  // role of the current user on this project (optional)
+  role?: "OWNER" | "CONTRIBUTOR" ;
 }
 
 export default function ProjectList({ projects }: { projects: Project[] }) {
@@ -55,7 +58,7 @@ export default function ProjectList({ projects }: { projects: Project[] }) {
   }
 
   if (projects.length === 0) {
-    return <Typography sx={{ mt: 2 }}>No projects found.</Typography>;
+    return <Typography sx={{ mt: 2 }}>No projects found. create a new project or accept invite to be contributer </Typography>;
   }
 
   return (
@@ -70,11 +73,16 @@ export default function ProjectList({ projects }: { projects: Project[] }) {
           >
             <a
               href={`/projects/${project.id}`}
-              style={{ flex: 1, textDecoration: "none", color: "inherit" }}
+              style={{ flex: 1, textDecoration: "none", color: "inherit", display: "flex", alignItems: "center", gap: 8 }}
             >
-              <Typography variant="h6" component="span">
-                {project.name}
-              </Typography>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Typography variant="h6" component="span">
+                  {project.name}
+                </Typography>
+                {project.role && (
+                  <Chip label={project.role} size="small" />
+                )}
+              </div>
               {project.description && (
                 <Typography
                   variant="body2"
