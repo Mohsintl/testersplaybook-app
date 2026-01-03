@@ -1,97 +1,213 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   Box,
   Card,
   CardContent,
   Typography,
-  Button,
   Stack,
+  Button,
   Chip,
-  CircularProgress,
+  Divider,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 
-type TestRun = {
+type AssignedRun = {
   id: string;
   name: string;
+  startedAt: Date;
   project: {
     id: string;
     name: string;
   };
-  startedAt: string;
-  endedAt: string | null;
 };
 
-export default function DashboardClient() {
-  const [runs, setRuns] = useState<TestRun[]>([]);
-  const [loading, setLoading] = useState(true);
+
+
+type CompletedRun = AssignedRun & {
+  endedAt: Date;
+};
+
+type CreatedRun = {
+  id: string;
+  name: string;
+  startedAt: Date;
+  endedAt: Date | null;
+  project: {
+    id: string;
+    name: string;
+  };
+  assignedTo: {
+    id: string;
+    name: string | null;
+  } | null;
+};
+
+export default function DashboardClient({
+  activeAssignedRuns,
+  createdRuns,
+  projectCount,
+  completedAssignedRuns,
+}: {
+  activeAssignedRuns: AssignedRun[];
+  createdRuns: CreatedRun[];
+  projectCount: number;
+  completedAssignedRuns: CompletedRun[];
+}) {
   const router = useRouter();
 
-  useEffect(() => {
-    async function load() {
-      const res = await fetch("/api/dashboard");
-      const json = await res.json();
-      setRuns(json.data || []);
-      setLoading(false);
-    }
-    load();
-  }, []);
-
-  if (loading) {
-    return (
-      <Box p={4}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
   return (
-    <Box p={4}>
-      <Typography variant="h5" fontWeight={600}>
-        My Assigned Test Runs
+    <Box p={3}>
+      <Typography variant="h5" fontWeight={700}>
+        Dashboard
       </Typography>
 
-      {runs.length === 0 && (
-        <Typography mt={2} color="text.secondary">
-          No test runs assigned yet.
+      <Typography color="text.secondary" mb={3}>
+        Your current work and responsibilities
+      </Typography>
+
+      {/* QUICK STATS */}
+      <Stack direction="row" spacing={2} mb={4}>
+        <Chip label={`Projects: ${projectCount}`} />
+        <Chip label={`Assigned runs: ${activeAssignedRuns.length}`} />
+        <Chip label={`Completed runs: ${completedAssignedRuns.length}`} />
+        <Chip label={`Created runs: ${createdRuns.length}`} />
+      </Stack>
+
+      {/* ASSIGNED TO ME */}
+      <Typography variant="h6" gutterBottom>
+        Assigned to Me
+      </Typography>
+
+      {activeAssignedRuns.length === 0 ? (
+        <Typography color="text.secondary" mb={3}>
+          No test runs assigned to you.
         </Typography>
+      ) : (
+        <Stack spacing={2} mb={4}>
+          {activeAssignedRuns.map((run) => (
+            <Card key={run.id}>
+              <CardContent>
+                <Typography fontWeight={600}>
+                  {run.name}
+                </Typography>
+                <Typography color="text.secondary">
+                  Project: {run.project.name}
+                </Typography>
+
+                <Button
+                  sx={{ mt: 1 }}
+                  variant="contained"
+                  onClick={() =>
+                    router.push(`/test-runs/${run.id}`)
+                  }
+                >
+                  Start / Resume Execution
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
+      )}
+      <Divider sx={{ my: 4 }} />
+{/* Completed by me section  */}
+      <Typography variant="h6" gutterBottom>
+        Completed Test Runs
+      </Typography>
+
+      {completedAssignedRuns.length === 0 ? (
+        <Typography color="text.secondary" mb={3}>
+          You haven’t completed any test runs yet.
+        </Typography>
+      ) : (
+        <Stack spacing={2} mb={4}>
+          {completedAssignedRuns.map((run) => (
+            <Card key={run.id}>
+              <CardContent>
+                <Typography fontWeight={600}>
+                  {run.name}
+                </Typography>
+
+                <Typography color="text.secondary">
+                  Project: {run.project.name}
+                </Typography>
+
+                <Chip
+                  sx={{ mt: 1 }}
+                  color="success"
+                  label="Completed"
+                />
+
+                <Button
+                  sx={{ mt: 2 }}
+                  variant="outlined"
+                  onClick={() =>
+                    router.push(`/test-runs/${run.id}`)
+                  }
+                >
+                  View Execution Summary
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
       )}
 
-      <Stack spacing={2} mt={3}>
-        {runs.map((run) => (
-          <Card key={run.id}>
-            <CardContent>
-              <Typography fontWeight={600}>
-                {run.name}
-              </Typography>
 
-              <Typography color="text.secondary">
-                Project: {run.project.name}
-              </Typography>
+      <Divider sx={{ my: 4 }} />
 
-              <Stack direction="row" spacing={1} mt={1}>
-                {run.endedAt ? (
-                  <Chip label="Completed" color="success" />
-                ) : (
-                  <Chip label="In Progress" color="warning" />
-                )}
-              </Stack>
+      {/* CREATED BY ME */}
+      <Typography variant="h6" gutterBottom>
+        Test Runs I Created
+      </Typography>
 
-              <Button
-                sx={{ mt: 2 }}
-                variant="contained"
-                onClick={() =>
-                  router.push(`/test-runs/${run.id}`)
-                }
-              >
-                Continue Execution
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </Stack>
+      {createdRuns.length === 0 ? (
+        <Typography color="text.secondary">
+          You haven’t created any test runs yet.
+        </Typography>
+      ) : (
+        <Stack spacing={2}>
+          {createdRuns.map((run) => (
+            <Card key={run.id}>
+              <CardContent>
+                <Typography fontWeight={600}>
+                  {run.name}
+                </Typography>
+
+                <Typography color="text.secondary">
+                  Project: {run.project.name}
+                </Typography>
+
+                <Stack direction="row" spacing={1} mt={1}>
+                  <Chip
+                    label={
+                      run.endedAt ? "Completed" : "Active"
+                    }
+                    color={run.endedAt ? "success" : "warning"}
+                  />
+                  <Chip
+                    label={
+                      run.assignedTo
+                        ? `Assigned to ${run.assignedTo.name}`
+                        : "Unassigned"
+                    }
+                  />
+                </Stack>
+
+                <Button
+                  sx={{ mt: 2 }}
+                  variant="outlined"
+                  onClick={() =>
+                    router.push(`/test-runs/${run.id}`)
+                  }
+                >
+                  View Execution
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
+      )}
     </Box>
   );
 }

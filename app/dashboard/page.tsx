@@ -1,31 +1,119 @@
+import { redirect } from "next/navigation";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { redirect } from "next/navigation";
 import DashboardClient from "./DashboardClient";
+import ProjectLayout from "../projects/components/ProjectLayout";
+
+export const runtime = "nodejs";
 
 export default async function DashboardPage() {
   const session = await getAuthSession();
 
   if (!session?.user?.id) {
-    redirect("/");
+    redirect("/entry");
   }
 
   const userId = session.user.id;
 
-  // Check ownership first
-  const ownerCount = await prisma.project.count({ where: { ownerId: userId } });
-  if (ownerCount > 0) {
-    // Owners manage projects
-    redirect("/projects");
-  }
+  /**
+   * 1️⃣ Test runs ASSIGNED to the user (Contributor flow)
+   */
+  const activeAssignedRuns = await prisma.testRun.findMany({
+    where: {
+      assignedToId: userId,
+      endedAt: null,
+    },
+    orderBy: {
+      startedAt: "desc",
+    },
+    select: {
+      id: true,
+      name: true,
+      startedAt: true,
+      project: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
 
-  // Check contributor memberships
-  const memberCount = await prisma.projectMember.count({ where: { userId } });
-  if (memberCount > 0) {
-    // Render dashboard client for contributors
-    return <DashboardClient />;
-  }
+  const completedAssignedRuns = await prisma.testRun.findMany({
+    where: {
+      assignedToId: userId,
+      endedAt: {
+        not: null,
+      },
+    },
+    orderBy: {
+      endedAt: "desc",
+    },
+    select: {
+      id: true,
+      name: true,
+      endedAt: true,
+      project: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
 
-  // No projects or memberships — send to entry to choose next action
-  redirect("/entry");
+  /**
+   * 2️⃣ Test runs CREATED by the user (Owner / Lead flow)
+   */
+  const createdRuns = await prisma.testRun.findMany({
+    where: {
+      userId,
+    },
+    orderBy: {
+      startedAt: "desc",
+    },
+    select: {
+      id: true,
+      name: true,
+      startedAt: true,
+      endedAt: true,
+      assignedTo: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      project: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  /**
+   * 3️⃣ Project count (for quick stats)
+   */
+  const projectCount = await prisma.projectMember.count({
+    where: { userId },
+  });
+
+  return (
+
+    <ProjectLayout
+      title="Dashboard"
+      description="Manage your testRUns"
+      leftContent={
+        <DashboardClient
+          activeAssignedRuns={activeAssignedRuns}
+          createdRuns={createdRuns}
+          completedAssignedRuns={completedAssignedRuns}
+          projectCount={projectCount}
+        />
+      }
+      rightContent={null}
+    />
+
+  );
 }
