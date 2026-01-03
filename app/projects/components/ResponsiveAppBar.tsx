@@ -17,7 +17,7 @@ import { signOut } from 'next-auth/react';
 
 const pages = [
   { name: 'Projects', href: '/projects' },
-  { name: 'Pricing', href: '/api/pricing' },
+  { name: 'Dashboard', href: '/dashboard' },
   { name: 'Blog', href: '/api/blog' },
 ];
 const settings = [

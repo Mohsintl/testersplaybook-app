@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { Button, CircularProgress, Stack, Typography } from "@mui/material";
-import router from "next/router";
 
 export default function InviteAcceptClient({
   token,
@@ -41,7 +40,7 @@ export default function InviteAcceptClient({
       }
 
       // ✅ FORCE FULL RELOAD (refreshes session)
-      router.push("/projects");
+      window.location.href = `/projects`;
     } catch (err: any) {
       setError(err.message);
       setLoading(false);
