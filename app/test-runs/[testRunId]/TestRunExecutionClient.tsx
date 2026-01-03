@@ -209,88 +209,108 @@ export default function TestRunExecutionClient({
 
           <AccordionDetails>
             {module.results.map((result) => (
-              <Card key={result.id} sx={{ mb: 2 }}>
-                <CardContent>
-                  <Typography fontWeight={600}>
-                    {result.testCase.title}
-                  </Typography>
+              <Accordion key={result.id} sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                    <Typography fontWeight={600}>{result.testCase.title}</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Chip
+                        label={result.status}
+                        size="small"
+                        variant={result.status === "UNTESTED" ? "outlined" : undefined}
+                        color={(
+                          result.status === "PASSED"
+                            ? "success"
+                            : result.status === "FAILED"
+                            ? "error"
+                            : result.status === "BLOCKED"
+                            ? "warning"
+                            : "default"
+                        ) as any}
+                      />
+                    </Stack>
+                  </Box>
+                </AccordionSummary>
 
-                  <ul>
-                    {result.testCase.steps.map((step, i) => (
-                      <li key={i}>{step}</li>
-                    ))}
-                  </ul>
+                <AccordionDetails>
+                  <Card>
+                    <CardContent>
+                      <ul>
+                        {result.testCase.steps.map((step, i) => (
+                          <li key={i}>{step}</li>
+                        ))}
+                      </ul>
 
-                  <Typography>
-                    <strong>Expected:</strong>{" "}
-                    {result.testCase.expected}
-                  </Typography>
+                      <Typography>
+                        <strong>Expected:</strong>{" "}
+                        {result.testCase.expected}
+                      </Typography>
 
-                  <Stack direction="row" spacing={1} mt={2}>
-                    <Button
-                      variant={
-                        (result.status ?? "UNTESTED") === "UNTESTED"
-                          ? "contained"
-                          : "outlined"
-                      }
-                      color="info"
-                      disabled={isLocked}
-                      onClick={() => updateStatus(result.id, "UNTESTED")}
-                    >
-                      Untested
-                    </Button>
+                      <Stack direction="row" spacing={1} mt={2}>
+                        <Button
+                          variant={
+                            (result.status ?? "UNTESTED") === "UNTESTED"
+                              ? "contained"
+                              : "outlined"
+                          }
+                          color="info"
+                          disabled={isLocked}
+                          onClick={() => updateStatus(result.id, "UNTESTED")}
+                        >
+                          Untested
+                        </Button>
 
-                    <Button
-                      variant={
-                        result.status === "PASSED" ? "contained" : "outlined"
-                      }
-                      color="success"
-                      disabled={isLocked}
-                      onClick={() => updateStatus(result.id, "PASSED")}
-                    >
-                      Pass
-                    </Button>
-                    <Button
-                      variant={
-                        result.status === "FAILED" ? "contained" : "outlined"
-                      }
-                      color="error"
-                      disabled={isLocked}
-                      onClick={() => updateStatus(result.id, "FAILED")}
-                    >
-                      Fail
-                    </Button>
-                    <Button
-                      variant={
-                        result.status === "BLOCKED" ? "contained" : "outlined"
-                      }
-                      color="warning"
-                      disabled={isLocked}
-                      onClick={() => updateStatus(result.id, "BLOCKED")}
-                    >
-                      Block
-                    </Button>
-                  </Stack>
+                        <Button
+                          variant={
+                            result.status === "PASSED" ? "contained" : "outlined"
+                          }
+                          color="success"
+                          disabled={isLocked}
+                          onClick={() => updateStatus(result.id, "PASSED")}
+                        >
+                          Pass
+                        </Button>
+                        <Button
+                          variant={
+                            result.status === "FAILED" ? "contained" : "outlined"
+                          }
+                          color="error"
+                          disabled={isLocked}
+                          onClick={() => updateStatus(result.id, "FAILED")}
+                        >
+                          Fail
+                        </Button>
+                        <Button
+                          variant={
+                            result.status === "BLOCKED" ? "contained" : "outlined"
+                          }
+                          color="warning"
+                          disabled={isLocked}
+                          onClick={() => updateStatus(result.id, "BLOCKED")}
+                        >
+                          Block
+                        </Button>
+                      </Stack>
 
-                  <TextField
-                    label="Execution Notes"
-                    multiline
-                    minRows={2}
-                    fullWidth
-                    sx={{ mt: 2 }}
-                    disabled={isLocked}
-                    value={result.notes ?? ""}
-                    onChange={(e) =>
-                      updateLocalResult(result.id, {
-                        notes: e.target.value,
-                      })
-                    }
-                    onBlur={(e) =>
-                      saveNotes(result.id, e.target.value)
-                    }
-                  />
-                </CardContent>
-              </Card>
+                      <TextField
+                        label="Execution Notes"
+                        multiline
+                        minRows={2}
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        disabled={isLocked}
+                        value={result.notes ?? ""}
+                        onChange={(e) =>
+                          updateLocalResult(result.id, {
+                            notes: e.target.value,
+                          })
+                        }
+                        onBlur={(e) => saveNotes(result.id, e.target.value)}
+                      />
+                    </CardContent>
+                  </Card>
+                </AccordionDetails>
+              </Accordion>
             ))}
           </AccordionDetails>
         </Accordion>
