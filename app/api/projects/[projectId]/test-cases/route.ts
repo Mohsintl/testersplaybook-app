@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { getProjectMember } from "@/lib/project-access";
+import { getProjectMemberRole } from "@/lib/project-access";
 
 /* ---------------- POST: Create Test Case ---------------- */
 
@@ -18,7 +18,7 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const role = await getProjectMember(projectId, session.user.id);
+  const role = await getProjectMemberRole(projectId, session.user.id);
   if (!role) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -70,7 +70,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const role = await getProjectMember(projectId, session.user.id);
+  const role = await getProjectMemberRole(projectId, session.user.id);
   if (!role) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

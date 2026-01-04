@@ -19,30 +19,41 @@ export default function InviteMember({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  function isValidEmail(value: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
   async function sendInvite() {
-    setLoading(true);
     setError(null);
     setInviteLink(null);
 
-    const res = await fetch(
-      `/api/projects/${projectId}/invitations`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email , role: "CONTRIBUTOR"}),
-      }
-    );
-
-    const json = await res.json();
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(json.error || "Failed to send invite");
+    if (!isValidEmail(email)) {
+      setError("Please enter a valid email address.");
       return;
     }
 
-    setInviteLink(json.inviteLink);
-    setEmail("");
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/invitations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, role: "CONTRIBUTOR" }),
+      });
+
+      const json = await res.json();
+      setLoading(false);
+
+      if (!res.ok) {
+        setError(json.error || "Failed to send invite");
+        return;
+      }
+
+      setInviteLink(json.inviteLink);
+      setEmail("");
+    } catch (err) {
+      setLoading(false);
+      setError("Failed to send invite");
+    }
   }
 
   return (
@@ -56,12 +67,16 @@ export default function InviteMember({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           fullWidth
+          error={!!error || (email.length > 0 && !isValidEmail(email))}
+          helperText={
+            error ? error : email.length > 0 && !isValidEmail(email) ? "Enter a valid email" : undefined
+          }
         />
 
         <Button
           variant="contained"
           onClick={sendInvite}
-          disabled={loading}
+          disabled={loading || !isValidEmail(email)}
         >
           Invite
         </Button>
