@@ -17,7 +17,7 @@ import {
   Alert,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 type TestResultStatus = "PASSED" | "FAILED" | "BLOCKED" | "UNTESTED";
 
@@ -52,11 +52,12 @@ export default function TestRunExecutionClient({
   testRun,
 }: {
 
-  testRun: {
+    testRun: {
     id: string;
     name: string;
     projectName: string;
-    status: string;
+      status: string;
+      isLocked?: boolean;
     assignedToId?: string | null;
     modules: ModuleExecution[];
     endedAt: string;
@@ -70,7 +71,9 @@ export default function TestRunExecutionClient({
   const [finishing, setFinishing] = useState(false);
   const [endedAt, setEndedAt] = useState<string | null>(testRun.endedAt);
 
-  const isLocked = Boolean(endedAt);
+  const isLocked = testRun.isLocked ?? Boolean(endedAt);
+
+  const router = useRouter();
 
  
 
@@ -163,6 +166,7 @@ export default function TestRunExecutionClient({
     });
 
     setEndedAt(new Date().toISOString());
+    router.refresh();
     setFinishing(false);
   }
 
@@ -201,20 +205,20 @@ export default function TestRunExecutionClient({
             Overall Status: <strong>{testRun.status}</strong>
           </Typography>
           <Stack direction="row" spacing={2} mt={2}>
-            {testRun.status === "STARTED" && !isLocked && (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={async () => {
-                  await fetch(`/api/test-runs/${testRun.id}/start`, {
-                    method: "POST",
-                  });
-                  router.replace(router.asPath);
-                }}
-              >
-                ▶ Start Execution
-              </Button>
-            )}
+              {testRun.status === "STARTED" && !isLocked && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={async () => {
+                    await fetch(`/api/test-runs/${testRun.id}/start`, {
+                      method: "POST",
+                    });
+                    router.refresh();
+                  }}
+                >
+                  ▶ Start Execution
+                </Button>
+              )}
 
             {!isLocked && testRun.status === "IN_PROGRESS" && (
               <Button
