@@ -20,6 +20,7 @@ export default async function TestRunPage({
   const testRun = await prisma.testRun.findUnique({
     where: { id: testRunId },
     include: {
+     
       project: {
         select: {
           name: true,
@@ -99,6 +100,8 @@ export default async function TestRunPage({
         id: testRun.id,
         name: testRun.name,
         projectName: testRun.project.name,
+        status: testRun.status,
+        assignedToId: testRun.assignedToId,
         startedAt: testRun.startedAt.toISOString(),
         endedAt: testRun.endedAt ? testRun.endedAt.toISOString() : "",
         results: normalizedResults,

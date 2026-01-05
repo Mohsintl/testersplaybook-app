@@ -17,6 +17,7 @@ import {
   Alert,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import router from "next/router";
 
 type TestResultStatus = "PASSED" | "FAILED" | "BLOCKED" | "UNTESTED";
 
@@ -50,13 +51,15 @@ type ExecutionSummary = {
 export default function TestRunExecutionClient({
   testRun,
 }: {
-  
+
   testRun: {
     id: string;
     name: string;
     projectName: string;
+    status: string;
+    assignedToId?: string | null;
     modules: ModuleExecution[];
-    endedAt: string ;
+    endedAt: string;
     startedAt: string;
     results: TestResult[];
     summary: ExecutionSummary;
@@ -69,6 +72,7 @@ export default function TestRunExecutionClient({
 
   const isLocked = Boolean(endedAt);
 
+ 
 
   /* ---------------- SUMMARY ---------------- */
   const summary: ExecutionSummary = useMemo(() => {
@@ -162,6 +166,7 @@ export default function TestRunExecutionClient({
     setFinishing(false);
   }
 
+
   /* ---------------- UI ---------------- */
   return (
     <Box p={3}>
@@ -193,8 +198,36 @@ export default function TestRunExecutionClient({
           </Stack>
 
           <Typography mt={2}>
-            Overall Status: <strong>{summary.overall}</strong>
+            Overall Status: <strong>{testRun.status}</strong>
           </Typography>
+          <Stack direction="row" spacing={2} mt={2}>
+            {testRun.status === "STARTED" && !isLocked && (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={async () => {
+                  await fetch(`/api/test-runs/${testRun.id}/start`, {
+                    method: "POST",
+                  });
+                  router.replace(router.asPath);
+                }}
+              >
+                ▶ Start Execution
+              </Button>
+            )}
+
+            {!isLocked && testRun.status === "IN_PROGRESS" && (
+              <Button
+                variant="contained"
+                color="primary"
+                disabled={finishing}
+                onClick={finishExecution}
+              >
+                {finishing ? "Finishing…" : "✅ Finish Execution"}
+              </Button>
+            )}
+          </Stack>
+
         </CardContent>
       </Card>
 
@@ -222,10 +255,10 @@ export default function TestRunExecutionClient({
                           result.status === "PASSED"
                             ? "success"
                             : result.status === "FAILED"
-                            ? "error"
-                            : result.status === "BLOCKED"
-                            ? "warning"
-                            : "default"
+                              ? "error"
+                              : result.status === "BLOCKED"
+                                ? "warning"
+                                : "default"
                         ) as any}
                       />
                     </Stack>
@@ -317,17 +350,6 @@ export default function TestRunExecutionClient({
       ))}
 
       <Divider sx={{ my: 4 }} />
-
-      {!isLocked && (
-        <Button
-          variant="contained"
-          color="primary"
-          disabled={finishing}
-          onClick={finishExecution}
-        >
-          {finishing ? "Finishing…" : "✅ Finish Execution"}
-        </Button>
-      )}
     </Box>
   );
 }

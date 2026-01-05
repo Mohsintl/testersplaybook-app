@@ -50,6 +50,7 @@ enum AutomationStatus {
 }
 
 enum TestRunExecutionStatus {
+  STARTED
   IN_PROGRESS
   COMPLETED
 }
@@ -162,9 +163,11 @@ model TestRun {
   projectId    String
   userId       String
   assignedToId String?
+  setup        Json?
   startedAt    DateTime               @default(now())
   endedAt      DateTime?
-  status       TestRunExecutionStatus @default(IN_PROGRESS)
+  status       TestRunExecutionStatus @default(STARTED)
+  isLocked     Boolean                @default(false)
 
   // Relations
   project    Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)

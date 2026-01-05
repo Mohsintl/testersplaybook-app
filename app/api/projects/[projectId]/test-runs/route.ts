@@ -54,6 +54,8 @@ if (!canManageProject(role)) {
       name,
       projectId,
       userId: session.user.id,
+      status:"STARTED",
+      // isLocked: false,
       results: {
         create: testCases.map((tc) => ({
           testCaseId: tc.id,

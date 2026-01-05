@@ -39,6 +39,12 @@ if (
     { status: 403 }
   );
 }
+if (result.testRun.status !== "IN_PROGRESS") {
+  return NextResponse.json(
+    { error: "Execution not started" },
+    { status: 400 }
+  );
+}
 
 
   if (result.testRun.status === "COMPLETED") {

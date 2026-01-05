@@ -100,7 +100,7 @@ export default function TestRunsClient({
           name: json.data.name, // Assuming the API returns the new test run's name
           startedAt: json.data.startedAt, // Assuming the API returns the startedAt timestamp
           endedAt: json.data.endedAt, // Assuming the API returns the endedAt timestamp
-          status: "IN_PROGRESS", // New test runs are typically "IN_PROGRESS"
+          status: "STARTED", // New test runs are typically "STARTED"
         },
       ]);
 
