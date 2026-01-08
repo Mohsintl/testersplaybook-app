@@ -1,5 +1,13 @@
 "use client";
 
+/*
+  CreateProjectForm
+  -----------------
+  Small client component that renders a form to create a new project.
+  Responsibilities:
+  - Collect project `name` and `description`
+  - POST to the projects API and redirect on success
+*/
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {

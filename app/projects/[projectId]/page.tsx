@@ -1,3 +1,10 @@
+/*
+  Project Page (Server)
+  ---------------------
+  Loads a single project and related data (modules, test cases, runs) and
+  renders the project dashboard. Performs auth and access checks on the
+  server.
+*/
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";

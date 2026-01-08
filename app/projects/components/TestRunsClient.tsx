@@ -1,5 +1,12 @@
 "use client";
 
+/*
+  TestRunsClient
+  --------------
+  Client widget that lists test runs for a project and provides a button
+  to create a new run. Handles the empty-project case by showing a modal
+  if there are no test cases.
+*/
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@mui/material/Button";

@@ -1,5 +1,11 @@
 "use client";
 
+/*
+  CreateModuleForm
+  ----------------
+  Client form for adding a module to a project. Posts form data to the
+  projects API and reloads the page on success.
+*/
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import TextField from "@mui/material/TextField";

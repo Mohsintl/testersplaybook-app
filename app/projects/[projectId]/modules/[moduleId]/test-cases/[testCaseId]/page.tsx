@@ -1,4 +1,11 @@
 import { getAuthSession } from "@/lib/auth";
+/*
+  TestCase Page (Server)
+  ----------------------
+  Server component that loads a single TestCase for viewing/editing.
+  It prepares the data (including normalizing JSON `steps`) for the
+  corresponding client component.
+*/
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import TestCaseClient from "./TestCaseClient";

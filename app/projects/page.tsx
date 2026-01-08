@@ -1,4 +1,11 @@
 import { getAuthSession } from "@/lib/auth";
+/*
+  Projects Page (Server)
+  ----------------------
+  Loads and renders a list of projects for the current user. As a server
+  component it performs authentication and queries the database, returning
+  prepared data for client components.
+*/
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import ProjectLayout from "./components/ProjectLayout";

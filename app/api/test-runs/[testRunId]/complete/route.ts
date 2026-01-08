@@ -1,9 +1,9 @@
-// API route: Complete Test Run
-// ----------------------------
-// Marks a TestRun as COMPLETED and records `endedAt`. This route enforces
-// authorization (project membership) and only allows completion when the
-// run is IN_PROGRESS to avoid accidental transitions. Completing also
-// sets `isLocked = true` to prevent further edits to results.
+/*
+    API: Complete Test Run
+    ----------------------
+    Marks a TestRun as COMPLETED, records `endedAt`, and locks the run to
+    prevent further edits. Authorization and state guards are enforced.
+*/
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";

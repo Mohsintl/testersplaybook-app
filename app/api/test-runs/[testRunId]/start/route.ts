@@ -1,8 +1,10 @@
-// API route: Start Test Run
-// ------------------------
-// Marks a TestRun as IN_PROGRESS so execution can begin. Authorization checks
-// ensure only the assigned contributor may start the run. When starting we
-// also unset the `isLocked` flag so results can be edited.
+/*
+  API: Start Test Run
+  -------------------
+  Transitions a TestRun into `IN_PROGRESS` and unlocks results for editing.
+  Only the assigned contributor is allowed to start a run. This header is
+  documentation-only; implementation follows.
+*/
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";

@@ -1,7 +1,10 @@
+/*
+  API: Blog (demo)
+  ----------------
+  Simple demo endpoint that returns static blog posts. Kept for
+  documentation and sample content; not part of core app logic.
+*/
 export const runtime = "nodejs";
-
-// This file defines the API route for fetching blog posts.
-// It returns a list of static blog posts for demonstration purposes.
 
 import { NextResponse } from "next/server";
 

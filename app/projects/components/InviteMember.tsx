@@ -1,5 +1,11 @@
 "use client";
 
+/*
+  InviteMember
+  ------------
+  Small client component used within project settings to send email
+  invitations. Includes basic client-side validation for email format.
+*/
 import { useState } from "react";
 import {
   Box,

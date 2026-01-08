@@ -1,3 +1,9 @@
+/*
+  API: Assigned Test Runs
+  -----------------------
+  Returns whether the current user has any active assigned TestRuns. Used
+  by the dashboard to show quick-access to assigned work.
+*/
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";

@@ -1,3 +1,11 @@
+/*
+  Dashboard Page (Server)
+  -----------------------
+  Server component that aggregates user-centric data (assigned runs,
+  created runs, project counts) and renders the `DashboardClient` inside
+  the project layout. Performs authentication and prepares stable data
+  for the client to render.
+*/
 import { redirect } from "next/navigation";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";

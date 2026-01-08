@@ -1,3 +1,10 @@
+/*
+  API: Dashboard Data
+  -------------------
+  Returns user-specific dashboard data such as assigned TestRuns. This
+  endpoint performs authentication and queries the database for items
+  relevant to the current user.
+*/
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";

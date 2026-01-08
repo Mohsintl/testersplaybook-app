@@ -1,3 +1,10 @@
+/*
+  API: TestRun Results
+  --------------------
+  Returns the TestRun's results and all project TestCases to assist the
+  execution UI. Authenticated users may call this endpoint; additional
+  checks are performed as needed in the implementation.
+*/
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";

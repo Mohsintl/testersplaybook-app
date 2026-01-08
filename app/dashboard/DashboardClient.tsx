@@ -1,5 +1,13 @@
 "use client";
 
+/*
+  DashboardClient
+  ---------------
+  Client component responsible for rendering dashboard UI: quick stats,
+  assigned runs, completed runs, and runs created by the user. This file
+  manages only presentation and client navigation; all data is passed in
+  from the server component.
+*/
 import {
   Box,
   Card,

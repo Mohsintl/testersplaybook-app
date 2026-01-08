@@ -1,8 +1,14 @@
-export const runtime = "nodejs";
-
 // This file defines the API route for managing projects.
 // It handles operations such as creating, updating, and deleting projects.
 // The route ensures proper authentication and authorization for project-related actions.
+
+/*
+  API: Projects
+  ------------
+  Provides endpoints to list and create projects for the current user.
+  Authentication is required; this header documents purpose only.
+*/
+export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";

@@ -1,6 +1,12 @@
 "use client";
 import ResponsiveAppBar from "./ResponsiveAppBar";
 import Container from "@mui/material/Container";
+/*
+  ProjectLayout
+  -------------
+  Layout component used for project sub-pages. Renders the project title
+  and common navigation/actions for project-scoped pages.
+*/
 import React from "react";
 
 interface ProjectLayoutProps {

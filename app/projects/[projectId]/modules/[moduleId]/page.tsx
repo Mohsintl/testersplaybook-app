@@ -1,4 +1,10 @@
 import { getAuthSession } from "@/lib/auth";
+/*
+  Module Page (Server)
+  --------------------
+  Server component that loads module details and test cases for the
+  module. Normalizes data and passes it to client components.
+*/
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import CreateTestCaseForm from "./CreateTestCaseForm";

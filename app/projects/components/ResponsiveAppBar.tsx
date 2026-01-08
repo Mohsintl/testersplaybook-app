@@ -1,3 +1,9 @@
+/*
+  ResponsiveAppBar
+  ----------------
+  Project-level app bar used across project pages. Keeps responsive UI
+  concerns separated from page logic.
+*/
 import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';

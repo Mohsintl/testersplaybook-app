@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import Stack from "@mui/material/Stack";
+/*
+  ProjectList
+  -----------
+  Simple presentational component that renders a list of projects with
+  links. This component is UI-only and expects data to be provided by a
+  server component.
+*/
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";

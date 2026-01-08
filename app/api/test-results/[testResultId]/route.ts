@@ -1,8 +1,10 @@
-// API route: Update a TestResult (status/notes)
-// ---------------------------------------------
-// Allows the assigned user or creator to update a TestResult while the
-// run is IN_PROGRESS. This route enforces authorization and run-state
-// guards so that results cannot be modified before start or after completion.
+/*
+  API: Update TestResult
+  ----------------------
+  PATCH endpoint to update a TestResult's `status` and `notes`.
+  Guards ensure only authorized users may update results and only when the
+  parent TestRun is IN_PROGRESS.
+*/
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";

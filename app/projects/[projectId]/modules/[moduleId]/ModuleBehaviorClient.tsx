@@ -1,5 +1,11 @@
 "use client";
 
+/*
+  ModuleBehaviorClient
+  --------------------
+  Client-side UI for viewing and editing module-specific behaviors.
+  This component delegates persistence to API routes and focuses on UX.
+*/
 import { useState } from "react";
 import Button from "@mui/material/Button";
 import { useForm } from "react-hook-form";

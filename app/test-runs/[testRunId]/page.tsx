@@ -1,3 +1,17 @@
+/*
+  TestRun Page (Server)
+  ---------------------
+  Server component that loads a `TestRun` and prepares data for the
+  `TestRunExecutionClient` client component. Responsibilities:
+  - Authenticate the user and enforce access control
+  - Load `TestRun` with related `results` and `testCase` data
+  - Normalize `testCase.steps` (JSON) into `string[]` for the client
+  - Group results by module and compute the execution summary
+
+  Notes:
+  - This is a server component; it must `await` route `params` (App Router)
+  - No mutations are performed here; it only prepares data for the client
+*/
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";

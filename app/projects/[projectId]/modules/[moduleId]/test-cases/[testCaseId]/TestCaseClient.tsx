@@ -1,5 +1,12 @@
 "use client";
 
+/*
+  TestCaseClient
+  --------------
+  Client component for viewing and editing a single TestCase. Handles local
+  form state and sends updates to server API routes. This is a UI-only file
+  and does not perform server-side loading.
+*/
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import TextField from "@mui/material/TextField";
