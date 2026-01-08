@@ -1,3 +1,9 @@
+// API route: Complete Test Run
+// ----------------------------
+// Marks a TestRun as COMPLETED and records `endedAt`. This route enforces
+// authorization (project membership) and only allows completion when the
+// run is IN_PROGRESS to avoid accidental transitions. Completing also
+// sets `isLocked = true` to prevent further edits to results.
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -52,12 +58,13 @@ export async function POST(
 
     
         
-    // Update status and endedAt
+    // Update run to COMPLETED and lock it to prevent further edits
     const updated = await prisma.testRun.update({
         where: { id: testRunId },
         data: {
             status: "COMPLETED",
             endedAt: new Date(),
+            isLocked: true,
         },
         select: { endedAt: true, status: true },
     });

@@ -1,3 +1,8 @@
+// API route: Start Test Run
+// ------------------------
+// Marks a TestRun as IN_PROGRESS so execution can begin. Authorization checks
+// ensure only the assigned contributor may start the run. When starting we
+// also unset the `isLocked` flag so results can be edited.
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -18,10 +23,11 @@ export async function POST(
   });
 
   if (!testRun) {
+    // No run found with given id
     return NextResponse.json({ error: "Test run not found" }, { status: 404 });
   }
 
-  // 🔒 Only assigned contributor can start
+  // Authorization: only the assigned contributor may start execution
   if (testRun.assignedToId !== session.user.id) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -33,6 +39,7 @@ export async function POST(
     );
   }
 
+  // Update run to IN_PROGRESS and unlock results for editing
   await prisma.testRun.update({
     where: { id: testRunId },
     data: {

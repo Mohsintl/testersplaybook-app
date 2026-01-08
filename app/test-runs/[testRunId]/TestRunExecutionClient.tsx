@@ -1,5 +1,21 @@
 "use client";
 
+/*
+  TestRunExecutionClient
+  ----------------------
+  Client component for executing a TestRun.
+
+  Responsibilities:
+  - Render execution overview and per-module, per-test UI
+  - Disable actions when the run is locked or not IN_PROGRESS
+  - Start / Finish execution by calling server APIs
+
+  Notes:
+  - `isLocked` is derived from `testRun.isLocked` (preferred) or `endedAt` (fallback).
+  - `actionsDisabled` prevents status/notes updates before start and after completion.
+  This file contains only UI/interaction logic — persistence happens via API routes.
+*/
+
 import { useState, useMemo } from "react";
 import {
   Box,
@@ -74,6 +90,9 @@ export default function TestRunExecutionClient({
   const isLocked = testRun.isLocked ?? Boolean(endedAt);
 
   const router = useRouter();
+  const [finishError, setFinishError] = useState<string | null>(null);
+
+  const actionsDisabled = isLocked || testRun.status !== "IN_PROGRESS";
 
  
 
@@ -123,7 +142,8 @@ export default function TestRunExecutionClient({
     resultId: string,
     status: TestResultStatus
   ) {
-    if (isLocked) return;
+    // Guard: disallow status updates when actions are disabled (locked or not IN_PROGRESS)
+    if (actionsDisabled) return;
 
     const result = findResultById(resultId);
     if (!result) return;
@@ -141,7 +161,8 @@ export default function TestRunExecutionClient({
   }
 
   async function saveNotes(resultId: string, notes: string) {
-    if (isLocked) return;
+    // Guard: disallow saving notes when actions are disabled (locked or not IN_PROGRESS)
+    if (actionsDisabled) return;
 
     await fetch(`/api/test-results/${resultId}`, {
       method: "PATCH",
@@ -159,6 +180,13 @@ export default function TestRunExecutionClient({
   }
 
   async function finishExecution() {
+    // Prevent finishing when any test remains UNTESTED
+    if (summary.untested > 0) {
+      setFinishError(`Cannot finish execution: ${summary.untested} test(s) are UNTESTED.`);
+      return;
+    }
+
+    setFinishError(null);
     setFinishing(true);
 
     await fetch(`/api/test-runs/${testRun.id}/complete`, {
@@ -205,7 +233,7 @@ export default function TestRunExecutionClient({
             Overall Status: <strong>{testRun.status}</strong>
           </Typography>
           <Stack direction="row" spacing={2} mt={2}>
-              {testRun.status === "STARTED" && !isLocked && (
+              {testRun.status === "STARTED" && (
                 <Button
                   variant="contained"
                   color="primary"
@@ -221,14 +249,20 @@ export default function TestRunExecutionClient({
               )}
 
             {!isLocked && testRun.status === "IN_PROGRESS" && (
-              <Button
-                variant="contained"
-                color="primary"
-                disabled={finishing}
-                onClick={finishExecution}
-              >
-                {finishing ? "Finishing…" : "✅ Finish Execution"}
-              </Button>
+              <>
+                {finishError && (
+                  <Alert severity="error">{finishError}</Alert>
+                )}
+
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={finishing || summary.untested > 0}
+                  onClick={finishExecution}
+                >
+                  {finishing ? "Finishing…" : "✅ Finish Execution"}
+                </Button>
+              </>
             )}
           </Stack>
 
@@ -291,7 +325,7 @@ export default function TestRunExecutionClient({
                               : "outlined"
                           }
                           color="info"
-                          disabled={isLocked}
+                          disabled={actionsDisabled}
                           onClick={() => updateStatus(result.id, "UNTESTED")}
                         >
                           Untested
@@ -302,7 +336,7 @@ export default function TestRunExecutionClient({
                             result.status === "PASSED" ? "contained" : "outlined"
                           }
                           color="success"
-                          disabled={isLocked}
+                          disabled={actionsDisabled}
                           onClick={() => updateStatus(result.id, "PASSED")}
                         >
                           Pass
@@ -312,7 +346,7 @@ export default function TestRunExecutionClient({
                             result.status === "FAILED" ? "contained" : "outlined"
                           }
                           color="error"
-                          disabled={isLocked}
+                          disabled={actionsDisabled}
                           onClick={() => updateStatus(result.id, "FAILED")}
                         >
                           Fail
@@ -322,20 +356,20 @@ export default function TestRunExecutionClient({
                             result.status === "BLOCKED" ? "contained" : "outlined"
                           }
                           color="warning"
-                          disabled={isLocked}
+                          disabled={actionsDisabled}
                           onClick={() => updateStatus(result.id, "BLOCKED")}
                         >
                           Block
                         </Button>
                       </Stack>
 
-                      <TextField
+                        <TextField
                         label="Execution Notes"
                         multiline
                         minRows={2}
                         fullWidth
                         sx={{ mt: 2 }}
-                        disabled={isLocked}
+                        disabled={actionsDisabled}
                         value={result.notes ?? ""}
                         onChange={(e) =>
                           updateLocalResult(result.id, {

@@ -2,6 +2,18 @@ generator client {
   provider = "prisma-client-js"
 }
 
+/*
+  Prisma Schema Notes
+  -------------------
+  - Enum values for Postgres-backed enums must be added carefully: Postgres
+    requires enum value additions to be committed before they are referenced
+    in subsequent migrations. When adding new enum labels (e.g., UNTESTED),
+    create a migration that performs only the ALTER TYPE ... ADD VALUE
+    statement and apply it before creating rows that use the new label.
+  - Keep this note near the top of the schema to remind contributors about
+    safe enum migration practices.
+*/
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
