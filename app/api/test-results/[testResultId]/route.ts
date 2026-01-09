@@ -1,3 +1,10 @@
+/*
+  API: Update TestResult
+  ----------------------
+  PATCH endpoint to update a TestResult's `status` and `notes`.
+  Guards ensure only authorized users may update results and only when the
+  parent TestRun is IN_PROGRESS.
+*/
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
@@ -17,6 +24,7 @@ export async function PATCH(
   const { status, notes } = await req.json();
 
   if (!status) {
+    // Incoming request must include a new `status` value
     return NextResponse.json(
       { error: "Status required" },
       { status: 400 }
@@ -39,7 +47,13 @@ if (
     { status: 403 }
   );
 }
-
+  // Guard: ensure execution has started (and not already completed)
+  if (result.testRun.status !== "IN_PROGRESS") {
+    return NextResponse.json(
+      { error: "Execution not started" },
+      { status: 400 }
+    );
+  }
 
   if (result.testRun.status === "COMPLETED") {
     return NextResponse.json(

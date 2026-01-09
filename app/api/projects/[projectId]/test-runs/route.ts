@@ -1,3 +1,9 @@
+// API route: Create Test Run for a Project
+// ----------------------------------------
+// Creates a new TestRun and pre-populates `TestResult` rows for every
+// `TestCase` in the project. By default the run is created in a locked
+// state (`isLocked = true`) so results cannot be modified until the run
+// is explicitly started. Authorization is enforced (project owner only).
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
@@ -48,16 +54,20 @@ if (!canManageProject(role)) {
     select: { id: true },
   });
 
-  // Create test run
+  // Create test run with UNTESTED default results. Each TestCase becomes a
+  // TestResult initialized to UNTESTED. The run is locked at creation time
+  // to prevent premature edits; starting the run will unlock it.
   const testRun = await prisma.testRun.create({
     data: {
       name,
       projectId,
       userId: session.user.id,
+      status: "STARTED",
+      isLocked: true,
       results: {
-        create: testCases.map(tc => ({
+        create: testCases.map((tc) => ({
           testCaseId: tc.id,
-          status: "BLOCKED", // default
+          status: "UNTESTED",
         })),
       },
     },

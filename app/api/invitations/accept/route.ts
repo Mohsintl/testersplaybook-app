@@ -65,18 +65,34 @@ export async function POST(req: Request) {
     });
   }
 
-  // 5️⃣ Create member + delete invite (transaction)
+  // 5️⃣ Ensure user row exists and then create member + delete invite (transaction)
+  // Upsert user by email to guarantee foreign key integrity
+  let user = await prisma.user.findUnique({ where: { id: session.user.id } });
+
+  if (!user) {
+    // Try to find by email as fallback
+    user = await prisma.user.findUnique({ where: { email: session.user.email } });
+  }
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name ?? null,
+      },
+    });
+  }
+
   await prisma.$transaction([
     prisma.projectMember.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         projectId: invite.projectId,
         role: invite.role,
       },
     }),
-    prisma.invitation.delete({
-      where: { id: invite.id },
-    }),
+    prisma.invitation.delete({ where: { id: invite.id } }),
   ]);
 
   return NextResponse.json({

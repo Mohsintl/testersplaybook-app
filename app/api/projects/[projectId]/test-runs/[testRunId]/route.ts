@@ -1,3 +1,11 @@
+/*
+  API: Project TestRun Management
+  ------------------------------
+  GET: fetch a single TestRun's details (owner-only)
+  DELETE: delete the TestRun (owner-only)
+  This route enforces authentication and project-role checks; the
+  implementation below performs those checks and the database operations.
+*/
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";

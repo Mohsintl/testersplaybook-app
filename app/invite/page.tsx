@@ -1,3 +1,11 @@
+/*
+  Invite Page (Server)
+  --------------------
+  Server page that receives an invitation `token` via `searchParams`,
+  validates presence of the token, and renders the `InviteAcceptClient`
+  which performs the accept flow. This component is intentionally small and
+  delegates authentication and POSTing to the client component.
+*/
 import InviteAcceptClient from "./InviteAcceptClient";
 
 export default async function InvitePage({
@@ -7,7 +15,7 @@ export default async function InvitePage({
 }) {
   console.log("[InvitePage] searchParams:", await searchParams);
 
-  const { token } =  await searchParams;
+  const { token } = await searchParams;
 
   if (!token) {
     return (

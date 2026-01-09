@@ -1,3 +1,9 @@
+/*
+  ResponsiveAppBar
+  ----------------
+  Project-level app bar used across project pages. Keeps responsive UI
+  concerns separated from page logic.
+*/
 import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -17,7 +23,7 @@ import { signOut } from 'next-auth/react';
 
 const pages = [
   { name: 'Projects', href: '/projects' },
-  { name: 'Pricing', href: '/api/pricing' },
+  { name: 'Dashboard', href: '/dashboard' },
   { name: 'Blog', href: '/api/blog' },
 ];
 const settings = [

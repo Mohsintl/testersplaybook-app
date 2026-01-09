@@ -1,5 +1,21 @@
 "use client";
 
+/*
+  TestRunExecutionClient
+  ----------------------
+  Client component for executing a TestRun.
+
+  Responsibilities:
+  - Render execution overview and per-module, per-test UI
+  - Disable actions when the run is locked or not IN_PROGRESS
+  - Start / Finish execution by calling server APIs
+
+  Notes:
+  - `isLocked` is derived from `testRun.isLocked` (preferred) or `endedAt` (fallback).
+  - `actionsDisabled` prevents status/notes updates before start and after completion.
+  This file contains only UI/interaction logic — persistence happens via API routes.
+*/
+
 import { useState, useMemo } from "react";
 import {
   Box,
@@ -17,8 +33,9 @@ import {
   Alert,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { useRouter } from "next/navigation";
 
-type TestResultStatus = "PASSED" | "FAILED" | "BLOCKED";
+type TestResultStatus = "PASSED" | "FAILED" | "BLOCKED" | "UNTESTED";
 
 type TestResult = {
   id: string;
@@ -43,18 +60,23 @@ type ExecutionSummary = {
   passed: number;
   failed: number;
   blocked: number;
+  untested: number;
   overall: "PASSED" | "FAILED" | "PARTIAL" | "NOT_STARTED";
 };
 
 export default function TestRunExecutionClient({
   testRun,
 }: {
-  testRun: {
+
+    testRun: {
     id: string;
     name: string;
     projectName: string;
+      status: string;
+      isLocked?: boolean;
+    assignedToId?: string | null;
     modules: ModuleExecution[];
-    endedAt: string ;
+    endedAt: string;
     startedAt: string;
     results: TestResult[];
     summary: ExecutionSummary;
@@ -65,8 +87,14 @@ export default function TestRunExecutionClient({
   const [finishing, setFinishing] = useState(false);
   const [endedAt, setEndedAt] = useState<string | null>(testRun.endedAt);
 
-  const isLocked = Boolean(endedAt);
+  const isLocked = testRun.isLocked ?? Boolean(endedAt);
 
+  const router = useRouter();
+  const [finishError, setFinishError] = useState<string | null>(null);
+
+  const actionsDisabled = isLocked || testRun.status !== "IN_PROGRESS";
+
+ 
 
   /* ---------------- SUMMARY ---------------- */
   const summary: ExecutionSummary = useMemo(() => {
@@ -75,6 +103,7 @@ export default function TestRunExecutionClient({
     const passed = allResults.filter((r) => r.status === "PASSED").length;
     const failed = allResults.filter((r) => r.status === "FAILED").length;
     const blocked = allResults.filter((r) => r.status === "BLOCKED").length;
+    const untested = allResults.filter((r) => r.status === "UNTESTED").length;
 
     let overall: ExecutionSummary["overall"] = "NOT_STARTED";
     if (failed > 0) overall = "FAILED";
@@ -87,6 +116,7 @@ export default function TestRunExecutionClient({
       passed,
       failed,
       blocked,
+      untested,
       overall,
     };
   }, [modules]);
@@ -112,7 +142,8 @@ export default function TestRunExecutionClient({
     resultId: string,
     status: TestResultStatus
   ) {
-    if (isLocked) return;
+    // Guard: disallow status updates when actions are disabled (locked or not IN_PROGRESS)
+    if (actionsDisabled) return;
 
     const result = findResultById(resultId);
     if (!result) return;
@@ -130,7 +161,8 @@ export default function TestRunExecutionClient({
   }
 
   async function saveNotes(resultId: string, notes: string) {
-    if (isLocked) return;
+    // Guard: disallow saving notes when actions are disabled (locked or not IN_PROGRESS)
+    if (actionsDisabled) return;
 
     await fetch(`/api/test-results/${resultId}`, {
       method: "PATCH",
@@ -148,6 +180,13 @@ export default function TestRunExecutionClient({
   }
 
   async function finishExecution() {
+    // Prevent finishing when any test remains UNTESTED
+    if (summary.untested > 0) {
+      setFinishError(`Cannot finish execution: ${summary.untested} test(s) are UNTESTED.`);
+      return;
+    }
+
+    setFinishError(null);
     setFinishing(true);
 
     await fetch(`/api/test-runs/${testRun.id}/complete`, {
@@ -155,8 +194,10 @@ export default function TestRunExecutionClient({
     });
 
     setEndedAt(new Date().toISOString());
+    router.refresh();
     setFinishing(false);
   }
+
 
   /* ---------------- UI ---------------- */
   return (
@@ -185,11 +226,46 @@ export default function TestRunExecutionClient({
             <Chip color="success" label={`Passed: ${summary.passed}`} />
             <Chip color="error" label={`Failed: ${summary.failed}`} />
             <Chip color="warning" label={`Blocked: ${summary.blocked}`} />
+            <Chip label={`Untested: ${summary.untested}`} variant="outlined" />
           </Stack>
 
           <Typography mt={2}>
-            Overall Status: <strong>{summary.overall}</strong>
+            Overall Status: <strong>{testRun.status}</strong>
           </Typography>
+          <Stack direction="row" spacing={2} mt={2}>
+              {testRun.status === "STARTED" && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={async () => {
+                    await fetch(`/api/test-runs/${testRun.id}/start`, {
+                      method: "POST",
+                    });
+                    router.refresh();
+                  }}
+                >
+                  ▶ Start Execution
+                </Button>
+              )}
+
+            {!isLocked && testRun.status === "IN_PROGRESS" && (
+              <>
+                {finishError && (
+                  <Alert severity="error">{finishError}</Alert>
+                )}
+
+                <Button
+                  variant="contained"
+                  color="primary"
+                  disabled={finishing || summary.untested > 0}
+                  onClick={finishExecution}
+                >
+                  {finishing ? "Finishing…" : "✅ Finish Execution"}
+                </Button>
+              </>
+            )}
+          </Stack>
+
         </CardContent>
       </Card>
 
@@ -204,92 +280,114 @@ export default function TestRunExecutionClient({
 
           <AccordionDetails>
             {module.results.map((result) => (
-              <Card key={result.id} sx={{ mb: 2 }}>
-                <CardContent>
-                  <Typography fontWeight={600}>
-                    {result.testCase.title}
-                  </Typography>
+              <Accordion key={result.id} sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                    <Typography fontWeight={600}>{result.testCase.title}</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Chip
+                        label={result.status}
+                        size="small"
+                        variant={result.status === "UNTESTED" ? "outlined" : undefined}
+                        color={(
+                          result.status === "PASSED"
+                            ? "success"
+                            : result.status === "FAILED"
+                              ? "error"
+                              : result.status === "BLOCKED"
+                                ? "warning"
+                                : "default"
+                        ) as any}
+                      />
+                    </Stack>
+                  </Box>
+                </AccordionSummary>
 
-                  <ul>
-                    {result.testCase.steps.map((step, i) => (
-                      <li key={i}>{step}</li>
-                    ))}
-                  </ul>
+                <AccordionDetails>
+                  <Card>
+                    <CardContent>
+                      <ul>
+                        {result.testCase.steps.map((step, i) => (
+                          <li key={i}>{step}</li>
+                        ))}
+                      </ul>
 
-                  <Typography>
-                    <strong>Expected:</strong>{" "}
-                    {result.testCase.expected}
-                  </Typography>
+                      <Typography>
+                        <strong>Expected:</strong>{" "}
+                        {result.testCase.expected}
+                      </Typography>
 
-                  <Stack direction="row" spacing={1} mt={2}>
-                    <Button
-                      variant={
-                        result.status === "PASSED" ? "contained" : "outlined"
-                      }
-                      color="success"
-                      disabled={isLocked}
-                      onClick={() => updateStatus(result.id, "PASSED")}
-                    >
-                      Pass
-                    </Button>
-                    <Button
-                      variant={
-                        result.status === "FAILED" ? "contained" : "outlined"
-                      }
-                      color="error"
-                      disabled={isLocked}
-                      onClick={() => updateStatus(result.id, "FAILED")}
-                    >
-                      Fail
-                    </Button>
-                    <Button
-                      variant={
-                        result.status === "BLOCKED" ? "contained" : "outlined"
-                      }
-                      color="warning"
-                      disabled={isLocked}
-                      onClick={() => updateStatus(result.id, "BLOCKED")}
-                    >
-                      Block
-                    </Button>
-                  </Stack>
+                      <Stack direction="row" spacing={1} mt={2}>
+                        <Button
+                          variant={
+                            (result.status ?? "UNTESTED") === "UNTESTED"
+                              ? "contained"
+                              : "outlined"
+                          }
+                          color="info"
+                          disabled={actionsDisabled}
+                          onClick={() => updateStatus(result.id, "UNTESTED")}
+                        >
+                          Untested
+                        </Button>
 
-                  <TextField
-                    label="Execution Notes"
-                    multiline
-                    minRows={2}
-                    fullWidth
-                    sx={{ mt: 2 }}
-                    disabled={isLocked}
-                    value={result.notes ?? ""}
-                    onChange={(e) =>
-                      updateLocalResult(result.id, {
-                        notes: e.target.value,
-                      })
-                    }
-                    onBlur={(e) =>
-                      saveNotes(result.id, e.target.value)
-                    }
-                  />
-                </CardContent>
-              </Card>
+                        <Button
+                          variant={
+                            result.status === "PASSED" ? "contained" : "outlined"
+                          }
+                          color="success"
+                          disabled={actionsDisabled}
+                          onClick={() => updateStatus(result.id, "PASSED")}
+                        >
+                          Pass
+                        </Button>
+                        <Button
+                          variant={
+                            result.status === "FAILED" ? "contained" : "outlined"
+                          }
+                          color="error"
+                          disabled={actionsDisabled}
+                          onClick={() => updateStatus(result.id, "FAILED")}
+                        >
+                          Fail
+                        </Button>
+                        <Button
+                          variant={
+                            result.status === "BLOCKED" ? "contained" : "outlined"
+                          }
+                          color="warning"
+                          disabled={actionsDisabled}
+                          onClick={() => updateStatus(result.id, "BLOCKED")}
+                        >
+                          Block
+                        </Button>
+                      </Stack>
+
+                        <TextField
+                        label="Execution Notes"
+                        multiline
+                        minRows={2}
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        disabled={actionsDisabled}
+                        value={result.notes ?? ""}
+                        onChange={(e) =>
+                          updateLocalResult(result.id, {
+                            notes: e.target.value,
+                          })
+                        }
+                        onBlur={(e) => saveNotes(result.id, e.target.value)}
+                      />
+                    </CardContent>
+                  </Card>
+                </AccordionDetails>
+              </Accordion>
             ))}
           </AccordionDetails>
         </Accordion>
       ))}
 
       <Divider sx={{ my: 4 }} />
-
-      {!isLocked && (
-        <Button
-          variant="contained"
-          color="primary"
-          disabled={finishing}
-          onClick={finishExecution}
-        >
-          {finishing ? "Finishing…" : "✅ Finish Execution"}
-        </Button>
-      )}
     </Box>
   );
 }

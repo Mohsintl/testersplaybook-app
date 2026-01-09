@@ -1,8 +1,16 @@
+
+/*
+  API: Project Invitations
+  ------------------------
+  Handles creating and listing invitations for a project. This route
+  enforces authentication and project membership checks. Behavior and
+  validation are implemented below; this header is documentation-only.
+*/
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { getAuthSession } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import { getProjectMemberRole } from "@/lib/project-access";
-import { randomUUID } from "node:crypto";
+import { randomUUID } from "crypto";
 
 export async function POST(
   req: Request,

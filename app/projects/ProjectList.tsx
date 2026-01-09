@@ -2,14 +2,24 @@
 
 import { useState } from "react";
 import Stack from "@mui/material/Stack";
+/*
+  ProjectList
+  -----------
+  Simple presentational component that renders a list of projects with
+  links. This component is UI-only and expects data to be provided by a
+  server component.
+*/
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
+import Chip from "@mui/material/Chip";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 interface Project {
   id: string;
   name: string;
   description: string | null;
+  // role of the current user on this project (optional)
+  role?: "OWNER" | "CONTRIBUTOR" ;
 }
 
 export default function ProjectList({ projects }: { projects: Project[] }) {
@@ -55,7 +65,7 @@ export default function ProjectList({ projects }: { projects: Project[] }) {
   }
 
   if (projects.length === 0) {
-    return <Typography sx={{ mt: 2 }}>No projects found.</Typography>;
+    return <Typography sx={{ mt: 2 }}>No projects found. create a new project or accept invite to be contributer </Typography>;
   }
 
   return (
@@ -68,31 +78,68 @@ export default function ProjectList({ projects }: { projects: Project[] }) {
             spacing={2}
             alignItems="center"
           >
-            <a
-              href={`/projects/${project.id}`}
-              style={{ flex: 1, textDecoration: "none", color: "inherit" }}
-            >
-              <Typography variant="h6" component="span">
-                {project.name}
-              </Typography>
-              {project.description && (
-                <Typography
-                  variant="body2"
-                  component="span"
-                  sx={{ ml: 1, color: "text.secondary" }}
-                >
-                  — {project.description}
-                </Typography>
-              )}
-            </a>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={() => openDeleteModal(project)}
-              disabled={deleting === project.id}
-            >
-              {deleting === project.id ? "Deleting..." : "Delete"}
-            </Button>
+            {project.role === "CONTRIBUTOR" ? (
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  color: "rgba(0,0,0,0.6)",
+                  cursor: "default",
+                }}
+                title="Contributors cannot open this project"
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Typography variant="h6" component="span">
+                    {project.name}
+                  </Typography>
+                  {project.role && <Chip label={project.role} size="small" />}
+                </div>
+                {project.description && (
+                  <Typography
+                    variant="body2"
+                    component="span"
+                    sx={{ ml: 1, color: "text.secondary" }}
+                  >
+                    — {project.description}
+                  </Typography>
+                )}
+              </div>
+            ) : (
+              <a
+                href={`/projects/${project.id}`}
+                style={{ flex: 1, textDecoration: "none", color: "inherit", display: "flex", alignItems: "center", gap: 8 }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Typography variant="h6" component="span">
+                    {project.name}
+                  </Typography>
+                  {project.role && (
+                    <Chip label={project.role} size="small" />
+                  )}
+                </div>
+                {project.description && (
+                  <Typography
+                    variant="body2"
+                    component="span"
+                    sx={{ ml: 1, color: "text.secondary" }}
+                  >
+                    — {project.description}
+                  </Typography>
+                )}
+              </a>
+            )}
+            {project.role !== "CONTRIBUTOR" && (
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => openDeleteModal(project)}
+                disabled={deleting === project.id}
+              >
+                {deleting === project.id ? "Deleting..." : "Delete"}
+              </Button>
+            )}
           </Stack>
         ))}
       </Stack>

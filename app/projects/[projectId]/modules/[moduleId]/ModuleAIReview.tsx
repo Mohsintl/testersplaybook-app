@@ -1,5 +1,11 @@
 "use client";
 
+/*
+  ModuleAIReview
+  --------------
+  Client component that displays AI analysis for a module and allows
+  the user to accept or apply suggested changes. Uses AI API routes.
+*/
 import { useState } from "react";
 
 type TestCase = {

@@ -1,5 +1,11 @@
 "use client";
 
+/*
+  modelAIGenerate
+  ---------------
+  Client utility that triggers AI-assisted generation for module content.
+  This component is purely UI-triggered and calls the AI API route.
+*/
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 

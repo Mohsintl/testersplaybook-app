@@ -1,5 +1,11 @@
 "use client";
 
+/*
+  InviteMember
+  ------------
+  Small client component used within project settings to send email
+  invitations. Includes basic client-side validation for email format.
+*/
 import { useState } from "react";
 import {
   Box,
@@ -43,11 +49,15 @@ export default function InviteMember({
     }
   }
 
+  function isValidEmail(value: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  }
+
   async function sendInvite() {
-    setLoading(true);
     setError(null);
     setInviteLink(null);
 
+<<<<<<< HEAD
     // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -76,6 +86,35 @@ export default function InviteMember({
     setEmailValid(true);
     // refresh member list
     await fetchMembers();
+=======
+    if (!isValidEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/invitations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, role: "CONTRIBUTOR" }),
+      });
+
+      const json = await res.json();
+      setLoading(false);
+
+      if (!res.ok) {
+        setError(json.error || "Failed to send invite");
+        return;
+      }
+
+      setInviteLink(json.inviteLink);
+      setEmail("");
+    } catch (err) {
+      setLoading(false);
+      setError("Failed to send invite");
+    }
+>>>>>>> recovered-branch
   }
 
   return (
@@ -84,6 +123,7 @@ export default function InviteMember({
         {open ? "Hide invite form" : "Invite Contributor"}
       </Button>
 
+<<<<<<< HEAD
       {open && (
         <>
           <Typography variant="h6" sx={{ mt: 2 }}>
@@ -103,6 +143,29 @@ export default function InviteMember({
               }}
               fullWidth
             />
+=======
+      <Box display="flex" gap={2} mt={2}>
+        <TextField
+          size="small"
+          label="Contributor email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          fullWidth
+          error={!!error || (email.length > 0 && !isValidEmail(email))}
+          helperText={
+            error ? error : email.length > 0 && !isValidEmail(email) ? "Enter a valid email" : undefined
+          }
+        />
+
+        <Button
+          variant="contained"
+          onClick={sendInvite}
+          disabled={loading || !isValidEmail(email)}
+        >
+          Invite
+        </Button>
+      </Box>
+>>>>>>> recovered-branch
 
             <Button variant="contained" onClick={sendInvite} disabled={loading}>
               Invite

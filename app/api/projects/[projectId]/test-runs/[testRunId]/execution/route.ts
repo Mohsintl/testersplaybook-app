@@ -1,3 +1,9 @@
+/*
+  API: TestRun Execution Data
+  --------------------------
+  Returns execution-related data (results + test cases) for a TestRun.
+  Used by the execution UI to render modules and results.
+*/
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";

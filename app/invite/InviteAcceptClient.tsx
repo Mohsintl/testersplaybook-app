@@ -4,6 +4,18 @@ import { useState } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { Button, CircularProgress, Stack, Typography } from "@mui/material";
 
+/*
+  InviteAcceptClient
+  ------------------
+  Client component that accepts an invitation token. Responsibilities:
+  - If the user is not authenticated, trigger OAuth sign-in and return
+  - POST the `token` to `/api/invitations/accept` to accept the invite
+  - On success, navigate to `/projects` (forces a full reload to refresh session)
+
+  This file contains UI and interaction logic only; server-side token
+  validation and membership creation occur in the API route.
+*/
+
 export default function InviteAcceptClient({
   token,
 }: {
@@ -40,7 +52,7 @@ export default function InviteAcceptClient({
       }
 
       // ✅ FORCE FULL RELOAD (refreshes session)
-      window.location.href = `/dashboard`;
+      window.location.href = `/projects`;
     } catch (err: any) {
       setError(err.message);
       setLoading(false);

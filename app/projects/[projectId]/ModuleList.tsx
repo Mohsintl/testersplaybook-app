@@ -3,6 +3,12 @@
 import { useState } from "react";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
+/*
+  ModuleList
+  ----------
+  Renders a project's modules with links. This is a presentational
+  component; data should be provided by a server component.
+*/
 import Typography from "@mui/material/Typography";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 

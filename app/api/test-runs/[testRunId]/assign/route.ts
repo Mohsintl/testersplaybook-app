@@ -1,3 +1,9 @@
+/*
+  API: Assign Test Run
+  --------------------
+  Assigns a TestRun to a user. Enforces authentication and project
+  membership checks. Implementation below performs the mutation.
+*/
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";

@@ -1,3 +1,10 @@
+/*
+  API: Project Details (DELETE)
+  -----------------------------
+  Server-side endpoint to delete a project. Only project OWNERs are allowed
+  to perform deletions. This header is documentation-only and does not
+  change runtime behavior.
+*/
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";

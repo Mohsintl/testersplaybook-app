@@ -1,11 +1,18 @@
 "use client";
 
+/*
+  TestRunsClient
+  --------------
+  Client widget that lists test runs for a project and provides a button
+  to create a new run. Handles the empty-project case by showing a modal
+  if there are no test cases.
+*/
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@mui/material/Button";
 import Link from "next/link";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
-import { MenuItem, Select } from "@mui/material";
+import { MenuItem, Select, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 
 
 type TestRun = {
@@ -42,6 +49,7 @@ export default function TestRunsClient({
   const [runs, setRuns] = useState(initialRuns);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [runToDelete, setRunToDelete] = useState<TestRun | null>(null);
+  const [noTestcasesOpen, setNoTestcasesOpen] = useState(false);
 
   async function fetchRuns() {
     console.log("Fetching updated runs...");
@@ -59,6 +67,23 @@ export default function TestRunsClient({
 
   async function handleCreate() {
     if (!name) return;
+
+    // Check if there are any test cases in the project
+    try {
+      const tcRes = await fetch(`/api/projects/${projectId}/test-cases`);
+      if (!tcRes.ok) {
+        // If forbidden/unauthorized, still attempt create which will return the proper error
+      } else {
+        const tcs = await tcRes.json();
+        if (Array.isArray(tcs) && tcs.length === 0) {
+          setNoTestcasesOpen(true);
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to check test cases:", err);
+      // proceed to attempt create and let server respond
+    }
 
     setLoading(true);
     const res = await fetch(
@@ -82,7 +107,7 @@ export default function TestRunsClient({
           name: json.data.name, // Assuming the API returns the new test run's name
           startedAt: json.data.startedAt, // Assuming the API returns the startedAt timestamp
           endedAt: json.data.endedAt, // Assuming the API returns the endedAt timestamp
-          status: "IN_PROGRESS", // New test runs are typically "IN_PROGRESS"
+          status: "STARTED", // New test runs are typically "STARTED"
         },
       ]);
 
@@ -227,6 +252,18 @@ export default function TestRunsClient({
         title="Delete Test Run"
         message={`Are you sure you want to delete the test run "${runToDelete?.name}"? This action cannot be undone.`}
       />
+
+      <Dialog open={noTestcasesOpen} onClose={() => setNoTestcasesOpen(false)}>
+        <DialogTitle>Cannot create test run</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This project has no test cases. Add at least one test case before creating a test run.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNoTestcasesOpen(false)}>OK</Button>
+        </DialogActions>
+      </Dialog>
 
     </section>
   );
