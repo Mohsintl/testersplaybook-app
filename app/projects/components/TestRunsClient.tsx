@@ -155,12 +155,36 @@ export default function TestRunsClient({
                 size="small"
                 value={run.assignedToId ?? ""}
                 onChange={async (e) => {
-                  await fetch(`/api/test-runs/${run.id}/assign`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ userId: e.target.value }),
-                  });
-                  router.refresh();
+                  const newUserId = (e.target as HTMLSelectElement).value as string;
+                  const previousUserId = run.assignedToId ?? "";
+
+                  // Optimistic UI update so the selection appears immediately
+                  setRuns(prev =>
+                    prev.map(r => (r.id === run.id ? { ...r, assignedToId: newUserId || null } : r))
+                  );
+
+                  try {
+                    const res = await fetch(`/api/test-runs/${run.id}/assign`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ userId: newUserId }),
+                    });
+
+                    if (!res.ok) {
+                      // Revert optimistic update on failure
+                      setRuns(prev =>
+                        prev.map(r => (r.id === run.id ? { ...r, assignedToId: previousUserId || null } : r))
+                      );
+                      const err = await res.json().catch(() => ({ error: 'Request failed' }));
+                      alert(err?.error || 'Failed to assign user');
+                    }
+                    // If needed, we could call `router.refresh()` here to fully sync.
+                  } catch (err) {
+                    setRuns(prev =>
+                      prev.map(r => (r.id === run.id ? { ...r, assignedToId: previousUserId || null } : r))
+                    );
+                    alert('Network error while assigning user');
+                  }
                 }}
               >
                 <MenuItem value="">Unassigned</MenuItem>
