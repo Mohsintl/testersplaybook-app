@@ -21,30 +21,27 @@ export default async function ProjectsPage() {
 
   const projects = await prisma.project.findMany({
     where: {
-      OR: [
-        { ownerId: session.user.id },
-        { members: { some: { userId: session.user.id } } },
-      ],
+     members: {
+      some: {userId: session.user.id},
+     },
     },
     include: {
-      owner: true,
+            owner: true,
       members: {
-        where: { userId: session.user.id },
-        select: {
-          role: true,
-        },
-      },
         where: { userId: session.user.id },
         select:{
           role: true,
         }
-  const projectsWithRole = projects.map((project) => ({
-    id: project.id,
-    name: project.name,
-    description: project.description,
-    role: project.ownerId === session.user.id ? "OWNER" : project.members[0]?.role ?? "CONTRIBUTOR",
-  }));
-=======
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+
+  if (projects.length === 0) {
+    redirect("/dashboard")
+  }
+
   const projectsWithRole = projects.map((project) =>  ({
     id: project.id,
     name: project.name,
@@ -52,7 +49,7 @@ export default async function ProjectsPage() {
     role: project.members[0]?.role ?? "CONTRIBUTOR",
   }));  
   
->>>>>>> recovered-branch
+
   return (
     <ProjectLayout
       title="Projects"

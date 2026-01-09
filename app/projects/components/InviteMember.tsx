@@ -57,36 +57,6 @@ export default function InviteMember({
     setError(null);
     setInviteLink(null);
 
-<<<<<<< HEAD
-    // Validate email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address");
-      setLoading(false);
-      setEmailValid(false);
-      return;
-    }
-
-    const res = await fetch(`/api/projects/${projectId}/invitations`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, role: "CONTRIBUTOR" }),
-    });
-
-    const json = await res.json();
-    setLoading(false);
-
-    if (!res.ok) {
-      setError(json.error || "Failed to send invite");
-      return;
-    }
-
-    setInviteLink(json.inviteLink);
-    setEmail("");
-    setEmailValid(true);
-    // refresh member list
-    await fetchMembers();
-=======
     if (!isValidEmail(email)) {
       setError("Please enter a valid email address.");
       return;
@@ -114,16 +84,13 @@ export default function InviteMember({
       setLoading(false);
       setError("Failed to send invite");
     }
->>>>>>> recovered-branch
   }
-
   return (
     <Box mt={4}>
       <Button variant="outlined" onClick={() => setOpen((s) => !s)}>
         {open ? "Hide invite form" : "Invite Contributor"}
       </Button>
 
-<<<<<<< HEAD
       {open && (
         <>
           <Typography variant="h6" sx={{ mt: 2 }}>
@@ -143,32 +110,9 @@ export default function InviteMember({
               }}
               fullWidth
             />
-=======
-      <Box display="flex" gap={2} mt={2}>
-        <TextField
-          size="small"
-          label="Contributor email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          fullWidth
-          error={!!error || (email.length > 0 && !isValidEmail(email))}
-          helperText={
-            error ? error : email.length > 0 && !isValidEmail(email) ? "Enter a valid email" : undefined
-          }
-        />
 
-        <Button
-          variant="contained"
-          onClick={sendInvite}
-          disabled={loading || !isValidEmail(email)}
-        >
-          Invite
-        </Button>
-      </Box>
->>>>>>> recovered-branch
-
-            <Button variant="contained" onClick={sendInvite} disabled={loading}>
-              Invite
+            <Button variant="contained" onClick={sendInvite} disabled={loading || !isValidEmail(email)}>
+              {loading ? "Inviting…" : "Invite"}
             </Button>
           </Box>
 
