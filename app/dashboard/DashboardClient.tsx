@@ -110,7 +110,7 @@ export default function DashboardClient({
                     router.push(`/test-runs/${run.id}`)
                   }
                 >
-                  Start / Resume Execution
+                  View Execution
                 </Button>
               </CardContent>
             </Card>

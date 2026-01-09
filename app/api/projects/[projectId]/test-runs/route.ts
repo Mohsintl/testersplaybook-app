@@ -97,6 +97,7 @@ export async function GET(
       startedAt: true,
       endedAt: true,
       status: true, // Include the status field
+      assignedToId: true, // Ensure assigned user is included for client UI
     },
   });
 
