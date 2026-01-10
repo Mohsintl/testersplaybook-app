@@ -7,12 +7,12 @@
   to create a new run. Handles the empty-project case by showing a modal
   if there are no test cases.
 */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@mui/material/Button";
 import Link from "next/link";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
-import { MenuItem, Select, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
+import { MenuItem, Select, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Card, CardContent, TextField, Typography } from "@mui/material";
 
 
 type TestRun = {
@@ -50,6 +50,12 @@ export default function TestRunsClient({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [runToDelete, setRunToDelete] = useState<TestRun | null>(null);
   const [noTestcasesOpen, setNoTestcasesOpen] = useState(false);
+  const [setup, setSetup] = useState<any>({ environment: "", build: "", credentials: "", notes: "" });
+  const [tempSetup, setTempSetup] = useState<any>(setup);
+  const [setupModalOpen, setSetupModalOpen] = useState(false);
+
+  // We manage `tempSetup` at the parent level and render the form inline
+  // to avoid remounting issues that reset input state.
 
   async function fetchRuns() {
     console.log("Fetching updated runs...");
@@ -85,34 +91,70 @@ export default function TestRunsClient({
       // proceed to attempt create and let server respond
     }
 
+    // This function is retained for direct creation (not used when modal flow is active)
     setLoading(true);
-    const res = await fetch(
-      `/api/projects/${projectId}/test-runs`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      }
-    );
+    const res = await fetch(`/api/projects/${projectId}/test-runs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, setup }),
+    });
 
     const json = await res.json();
     setLoading(false);
 
     if (json.success) {
       setName("");
-      setRuns(prevRuns => [
+      setRuns((prevRuns) => [
         ...prevRuns,
         {
-          id: json.data.id, // Assuming the API returns the new test run's ID
-          name: json.data.name, // Assuming the API returns the new test run's name
-          startedAt: json.data.startedAt, // Assuming the API returns the startedAt timestamp
-          endedAt: json.data.endedAt, // Assuming the API returns the endedAt timestamp
-          status: "STARTED", // New test runs are typically "STARTED"
+          id: json.data.id,
+          name: json.data.name,
+          startedAt: json.data.startedAt,
+          endedAt: json.data.endedAt,
+          status: "STARTED",
+          setup: setup,
         },
       ]);
 
-      // Refresh the page to update initialRuns
       router.refresh();
+    }
+  }
+
+  // Open the setup modal when the user clicks Start Run — user can fill setup then confirm creation
+  function openSetupModal() {
+    if (!name) return;
+    setTempSetup(setup);
+    setSetupModalOpen(true);
+  }
+
+  async function confirmCreateWithSetup() {
+    setLoading(true);
+    const res = await fetch(`/api/projects/${projectId}/test-runs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, setup: tempSetup }),
+    });
+
+    const json = await res.json();
+    setLoading(false);
+    if (json.success) {
+      setName("");
+      setSetup(tempSetup);
+      setRuns((prevRuns) => [
+        ...prevRuns,
+        {
+          id: json.data.id,
+          name: json.data.name,
+          startedAt: json.data.startedAt,
+          endedAt: json.data.endedAt,
+          status: "STARTED",
+          setup: tempSetup,
+        },
+      ]);
+      setSetupModalOpen(false);
+      router.refresh();
+    } else {
+      alert(json.error || "Failed to create test run");
     }
   }
 
@@ -145,23 +187,83 @@ export default function TestRunsClient({
       </h2>
 
       {/* Create */}
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        <input
-          placeholder="Regression v1"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          style={{ padding: 8, flex: 1 }}
-        />
-        
+      {/* Create */}
+      <div style={{ marginTop: 12 }}>
+        {/* <TestRunSetupForm onSave={(s) => setSetup(s)} /> */}
 
-        <Button
-          variant="contained"
-          onClick={handleCreate}
-          disabled={loading}
-        >
-          {loading ? "Creating…" : "Start Run"}
-        </Button>
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <input
+            placeholder="Regression v1"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            style={{ padding: 8, flex: 1 }}
+          />
+
+          <Button
+            variant="contained"
+            onClick={openSetupModal}
+            disabled={loading}
+          >
+            {loading ? "Creating…" : "Start Run"}
+          </Button>
+        </div>
       </div>
+
+      {/* Setup modal shown when user clicks Start Run */}
+      <Dialog open={setupModalOpen} onClose={() => setSetupModalOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Execution Setup (optional)</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Provide execution setup details for this run, or skip to create the run without setup.
+          </DialogContentText>
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography variant="h6">Execution Setup</Typography>
+
+              <TextField
+                label="Environment URL"
+                fullWidth
+                margin="normal"
+                value={tempSetup.environment}
+                onChange={(e) => setTempSetup({ ...tempSetup, environment: e.target.value })}
+              />
+
+              <TextField
+                label="Build / Version"
+                fullWidth
+                margin="normal"
+                value={tempSetup.build}
+                onChange={(e) => setTempSetup({ ...tempSetup, build: e.target.value })}
+              />
+
+              <TextField
+                label="Credentials"
+                fullWidth
+                margin="normal"
+                value={tempSetup.credentials}
+                onChange={(e) => setTempSetup({ ...tempSetup, credentials: e.target.value })}
+              />
+
+              <TextField
+                label="Additional Notes"
+                fullWidth
+                multiline
+                rows={3}
+                margin="normal"
+                value={tempSetup.notes}
+                onChange={(e) => setTempSetup({ ...tempSetup, notes: e.target.value })}
+              />
+
+            </CardContent>
+          </Card>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSetupModalOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={confirmCreateWithSetup} disabled={loading}>
+            {loading ? "Creating…" : "Create Run"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* List */}
       <ul style={{ marginTop: 16 }}>

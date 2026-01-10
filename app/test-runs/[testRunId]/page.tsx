@@ -33,22 +33,23 @@ export default async function TestRunPage({
 
   const testRun = await prisma.testRun.findUnique({
     where: { id: testRunId },
-    include: {
-     
-      project: {
-        select: {
-          name: true,
-        },
-      },
+    select: {
+      id: true,
+      name: true,
+      project: { select: { name: true } },
+      // `setup` is a scalar (JSON) field — use `select` not `include`
+      setup: true,
+      assignedToId: true,
+      userId: true,
+      status: true,
+      startedAt: true,
+      endedAt: true,
+      // results is a relation — include related testCase data
       results: {
         include: {
           testCase: {
             select: {
-              module: {
-                select: {
-                  id:true,name: true,
-                },
-              },
+              module: { select: { id: true, name: true } },
               id: true,
               title: true,
               steps: true,
@@ -121,6 +122,8 @@ export default async function TestRunPage({
         results: normalizedResults,
         summary,
         modules: Array.from(modulesMap.values()),
+        // forward setup (may be null) so the client can show Execution Setup
+        setup: testRun.setup ?? null,
       }}
     />
   );

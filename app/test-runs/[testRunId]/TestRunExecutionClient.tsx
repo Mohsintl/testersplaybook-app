@@ -74,12 +74,18 @@ export default function TestRunExecutionClient({
     projectName: string;
       status: string;
       isLocked?: boolean;
-    assignedToId?: string | null;
-    modules: ModuleExecution[];
-    endedAt: string;
-    startedAt: string;
-    results: TestResult[];
-    summary: ExecutionSummary;
+      assignedToId?: string | null;
+      modules: ModuleExecution[];
+      endedAt: string;
+      startedAt: string;
+      results: TestResult[];
+      summary: ExecutionSummary;
+      setup?: {
+        environment?: string;
+        build?: string;
+        credentials?: string;
+        notes?: string;
+      } | null;
   };
 }) {
   /* ---------------- STATE ---------------- */
@@ -268,6 +274,25 @@ export default function TestRunExecutionClient({
 
         </CardContent>
       </Card>
+
+      {/* Execution Setup (if provided) */}
+      {testRun.setup && (
+        <Card sx={{ mt: 3 }}>
+          <CardContent>
+            <Typography variant="h6">Execution Setup</Typography>
+
+            <Typography><strong>Environment:</strong> {testRun.setup.environment}</Typography>
+            <Typography><strong>Build:</strong> {testRun.setup.build}</Typography>
+            <Typography><strong>Credentials:</strong> {testRun.setup.credentials}</Typography>
+
+            {testRun.setup.notes && (
+              <Typography sx={{ mt: 1 }}>
+                <strong>Notes:</strong> {testRun.setup.notes}
+              </Typography>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Module-wise Execution */}
       {modules.map((module) => (

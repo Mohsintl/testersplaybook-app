@@ -40,6 +40,12 @@ export async function POST(
       { status: 400 }
     );
   }
+  if (!testRun.setup) {
+  return NextResponse.json(
+    { error: "Setup is required before starting execution" },
+    { status: 400 }
+  );
+}
 
   // Update run to IN_PROGRESS and unlock results for editing
   await prisma.testRun.update({

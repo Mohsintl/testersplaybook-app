@@ -24,10 +24,10 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { name } = await req.json();
-  if (!name) {
+  const { name , setup } = await req.json();
+  if (!name || !setup) {
     return NextResponse.json(
-      { error: "Test run name required" },
+      { error: "Test run name and setup required" },
       { status: 400 }
     );
   }
@@ -64,6 +64,7 @@ if (!canManageProject(role)) {
       userId: session.user.id,
       status: "STARTED",
       isLocked: true,
+      setup,
       results: {
         create: testCases.map((tc) => ({
           testCaseId: tc.id,
