@@ -16,7 +16,18 @@ export async function POST(req: Request) {
   }
 
   // 🔒 Rate limit
-  await checkAndRecordAIUsage(session.user.id, "analyze");
+  try {
+    await checkAndRecordAIUsage(session.user.id, "analyze");
+  } catch (err: any) {
+    // If usage limit reached, return structured 429 response
+    if (err?.name === "AIUsageError" || err?.code === "AI_USAGE_LIMIT") {
+      return NextResponse.json(
+        { error: err.message, code: err.code ?? "AI_USAGE_LIMIT", remaining: err.remaining ?? 0 },
+        { status: 429 }
+      );
+    }
+    throw err;
+  }
 
   /**
    * Fetch module + project

@@ -1,11 +1,11 @@
 export const AI_LIMITS = {
   improve: {
-    perDay: 20,
+    perDay: 1,
   },
   generate: {
-    perDay: 10,
+    perDay: 1,
   },
   analyze: {
-    perDay: 5,
+    perDay: 1,
   },
 };

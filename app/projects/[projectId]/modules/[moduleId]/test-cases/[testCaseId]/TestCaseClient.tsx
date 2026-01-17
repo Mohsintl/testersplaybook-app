@@ -8,6 +8,14 @@
   and does not perform server-side loading.
 */
 import { useState } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  
+} from "@mui/material";
 import { useForm } from "react-hook-form";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
@@ -49,6 +57,9 @@ export default function TestCaseClient({ testCase }: Props) {
     improved_expected: string;
   }>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [aiLimitOpen, setAiLimitOpen] = useState(false);
+  const [aiLimitMessage, setAiLimitMessage] = useState<string | null>(null);
+  const [aiRemaining, setAiRemaining] = useState<number | null>(null);
 
   /* ---------------- AI ---------------- */
 
@@ -69,8 +80,18 @@ export default function TestCaseClient({ testCase }: Props) {
         }),
       });
 
-      const json = await res.json();
-      if (!res.ok || !json.success) throw new Error(json.error);
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        if (res.status === 429 || json?.code === "AI_USAGE_LIMIT") {
+          setAiLimitMessage(json?.error ?? "You have reached your AI usage limit.");
+          setAiRemaining(typeof json?.remaining === "number" ? json.remaining : null);
+          setAiLimitOpen(true);
+          setAiLoading(false);
+          return;
+        }
+        throw new Error(json.error || "AI failed");
+      }
 
       setAiResult(json.data);
     } catch (err: any) {
@@ -270,6 +291,29 @@ export default function TestCaseClient({ testCase }: Props) {
       )}
 
       {aiError && <p style={{ color: "red" }}>{aiError}</p>}
+
+      <Dialog open={aiLimitOpen} onClose={() => setAiLimitOpen(false)}>
+        <DialogTitle>AI Usage Limit Reached</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {aiLimitMessage ?? "You've reached your AI usage limit for today."}
+          </DialogContentText>
+          {aiRemaining !== null && (
+            <DialogContentText sx={{ mt: 1 }}>
+              Remaining calls: {aiRemaining}
+            </DialogContentText>
+          )}
+          <DialogContentText sx={{ mt: 1 }}>
+            You can wait until your quota resets or upgrade to increase limits.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAiLimitOpen(false)}>Close</Button>
+          <Button component="a" href="/pricing" variant="contained">
+            Upgrade
+          </Button>
+        </DialogActions>
+      </Dialog>
     </main>
   );
 }

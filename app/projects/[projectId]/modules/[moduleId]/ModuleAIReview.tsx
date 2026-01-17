@@ -7,6 +7,14 @@
   the user to accept or apply suggested changes. Uses AI API routes.
 */
 import { useState } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+} from "@mui/material";
 
 type TestCase = {
   id: string;
@@ -37,6 +45,9 @@ export default function ModuleAIReview({
 }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ReviewResult | null>(null);
+  const [aiLimitOpen, setAiLimitOpen] = useState(false);
+  const [aiLimitMessage, setAiLimitMessage] = useState<string | null>(null);
+  const [aiRemaining, setAiRemaining] = useState<number | null>(null);
 
   if (!Array.isArray(testCases) || testCases.length === 0) {
     return (
@@ -55,7 +66,22 @@ export default function ModuleAIReview({
       body: JSON.stringify({ moduleId }),
     });
 
-    const json = await res.json();
+    const json = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      // structured AI usage response
+      if (res.status === 429 || json?.code === "AI_USAGE_LIMIT") {
+        setAiLimitMessage(json?.error ?? "You have reached your AI usage limit.");
+        setAiRemaining(typeof json?.remaining === "number" ? json.remaining : null);
+        setAiLimitOpen(true);
+        setLoading(false);
+        return;
+      }
+
+      alert(json?.error || "AI review failed");
+      setLoading(false);
+      return;
+    }
 
     // ✅ NORMALIZE RESULT
     setResult({
@@ -135,6 +161,29 @@ export default function ModuleAIReview({
           </button>
         </div>
       )}
+
+      <Dialog open={aiLimitOpen} onClose={() => setAiLimitOpen(false)}>
+        <DialogTitle>AI Usage Limit Reached</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {aiLimitMessage ?? "You've reached your AI usage limit for today."}
+          </DialogContentText>
+          {aiRemaining !== null && (
+            <DialogContentText sx={{ mt: 1 }}>
+              Remaining calls: {aiRemaining}
+            </DialogContentText>
+          )}
+          <DialogContentText sx={{ mt: 1 }}>
+            You can wait until your quota resets or upgrade to increase limits.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAiLimitOpen(false)}>Close</Button>
+          <Button component="a" href="/pricing" variant="contained">
+            Upgrade
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

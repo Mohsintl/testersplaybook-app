@@ -8,6 +8,14 @@
 */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+} from "@mui/material";
 
 type GeneratedTestCase = {
   title: string;
@@ -27,6 +35,9 @@ export default function ModuleAIGenerate({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiLimitOpen, setAiLimitOpen] = useState(false);
+  const [aiLimitMessage, setAiLimitMessage] = useState<string | null>(null);
+  const [aiRemaining, setAiRemaining] = useState<number | null>(null);
 
   // Toggle checkbox
   function toggle(index: number) {
@@ -49,14 +60,23 @@ export default function ModuleAIGenerate({
         body: JSON.stringify({ moduleId }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
 
-      // IMPORTANT: backend returns { success, data: { generated_test_cases } }
-      if (!res.ok || !json.success) {
+      // structured AI usage response
+      if (!res.ok) {
+        if (res.status === 429 || json?.code === "AI_USAGE_LIMIT") {
+          setAiLimitMessage(json?.error ?? "You have reached your AI usage limit.");
+          setAiRemaining(typeof json?.remaining === "number" ? json.remaining : null);
+          setAiLimitOpen(true);
+          setLoading(false);
+          return;
+        }
+
         throw new Error(json.error || "AI generation failed");
       }
 
-   setGenerated(Array.isArray(json.data) ? json.data : []);
+      // IMPORTANT: backend returns { success, data: { generated_test_cases } }
+      setGenerated(Array.isArray(json.data) ? json.data : []);
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
@@ -202,6 +222,29 @@ export default function ModuleAIGenerate({
           {error}
         </p>
       )}
+
+      <Dialog open={aiLimitOpen} onClose={() => setAiLimitOpen(false)}>
+        <DialogTitle>AI Usage Limit Reached</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {aiLimitMessage ?? "You've reached your AI usage limit for today."}
+          </DialogContentText>
+          {aiRemaining !== null && (
+            <DialogContentText sx={{ mt: 1 }}>
+              Remaining calls: {aiRemaining}
+            </DialogContentText>
+          )}
+          <DialogContentText sx={{ mt: 1 }}>
+            You can wait until your quota resets or upgrade to increase limits.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAiLimitOpen(false)}>Close</Button>
+          <Button component="a" href="/pricing" variant="contained">
+            Upgrade
+          </Button>
+        </DialogActions>
+      </Dialog>
     </section>
   );
 }

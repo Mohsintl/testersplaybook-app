@@ -19,7 +19,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "testCaseId required" }, { status: 400 });
   }
 
-  await checkAndRecordAIUsage(session.user.id, "improve");
+  try {
+    await checkAndRecordAIUsage(session.user.id, "improve");
+  } catch (err: any) {
+    if (err?.name === "AIUsageError" || err?.code === "AI_USAGE_LIMIT") {
+      return NextResponse.json(
+        { error: err.message, code: err.code ?? "AI_USAGE_LIMIT", remaining: err.remaining ?? 0 },
+        { status: 429 }
+      );
+    }
+    throw err;
+  }
 
   /**
    * Fetch test case + module + project
