@@ -18,6 +18,7 @@ import { getProjectMemberRole } from "@/lib/project-access";
 import { redirect } from "next/navigation";
 import { calculateTestRunSummary } from "@/lib/test-runs/summary";
 import TestRunExecutionClient from "./TestRunExecutionClient";
+import ProjectLayout from "@/app/projects/components/ProjectLayout";
 
 export default async function TestRunPage({
   params,
@@ -115,7 +116,11 @@ export default async function TestRunPage({
   const canEdit = role === "OWNER";
 
   return (
-    <TestRunExecutionClient
+     <ProjectLayout
+      title="TestRuns"
+      description="Execute test runs"
+      leftContent={
+         <TestRunExecutionClient
       testRun={{
         id: testRun.id,
         name: testRun.name,
@@ -132,5 +137,9 @@ export default async function TestRunPage({
       }}
       canEdit={canEdit}
     />
+      }
+      rightContent={null}
+    />
+   
   );
 }
