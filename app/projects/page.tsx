@@ -38,9 +38,9 @@ export default async function ProjectsPage() {
   });
 
 
-  if (projects.length === 0) {
-    redirect("/dashboard")
-  }
+  // if (projects.length === 0) {
+  //   redirect("/dashboard")
+  // }
 
   const projectsWithRole = projects.map((project) =>  ({
     id: project.id,
