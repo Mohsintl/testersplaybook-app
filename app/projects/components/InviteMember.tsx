@@ -127,6 +127,21 @@ export default function InviteMember({
               Invitation created. Share this link:
               <br />
               <strong>{inviteLink}</strong>
+            <Button
+              size="small"
+              variant="outlined"
+              sx={{ ml: 1 }}
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(inviteLink || "");
+                  window.alert("Invite link copied to clipboard");
+                } catch {
+                  window.alert("Failed to copy invite link");
+                }
+              }}
+            >
+              Copy
+            </Button>
             </Alert>
           )}
 
