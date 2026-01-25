@@ -34,6 +34,7 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useRouter } from "next/navigation";
+import SetupModal from "@/components/test-run/SetupModal";
 
 type TestResultStatus = "PASSED" | "FAILED" | "BLOCKED" | "UNTESTED";
 
@@ -66,6 +67,7 @@ type ExecutionSummary = {
 
 export default function TestRunExecutionClient({
   testRun,
+  canEdit,
 }: {
 
     testRun: {
@@ -87,6 +89,7 @@ export default function TestRunExecutionClient({
         notes?: string;
       } | null;
   };
+  canEdit?: boolean;
 }) {
   /* ---------------- STATE ---------------- */
   const [modules, setModules] = useState<ModuleExecution[]>(testRun.modules);
@@ -97,6 +100,10 @@ export default function TestRunExecutionClient({
 
   const router = useRouter();
   const [finishError, setFinishError] = useState<string | null>(null);
+
+  // Setup edit modal state (owner-only)
+  const [editSetupOpen, setEditSetupOpen] = useState(false);
+  const [tempSetup, setTempSetup] = useState<any>(testRun.setup ?? { environment: "", build: "", credentials: "", notes: "" });
 
   const actionsDisabled = isLocked || testRun.status !== "IN_PROGRESS";
 
@@ -290,9 +297,45 @@ export default function TestRunExecutionClient({
                 <strong>Notes:</strong> {testRun.setup.notes}
               </Typography>
             )}
+
+            {/* Edit button visible only for owners/canEdit */}
+            {canEdit && (
+              <Button sx={{ mt: 2 }} onClick={() => { setTempSetup(testRun.setup); setEditSetupOpen(true); }}>
+                ✏️ Edit Setup
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
+
+      {/* Owner edit modal for setup */}
+      <SetupModal
+        open={editSetupOpen}
+        onClose={() => setEditSetupOpen(false)}
+        tempSetup={tempSetup}
+        setTempSetup={setTempSetup}
+        loading={false}
+        onConfirm={async () => {
+          try {
+            const res = await fetch(`/api/test-runs/${testRun.id}/setup`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ setup: tempSetup }),
+            });
+
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              alert(json?.error || "Failed to update setup");
+              return;
+            }
+
+            setEditSetupOpen(false);
+            router.refresh();
+          } catch (err) {
+            alert("Failed to update setup");
+          }
+        }}
+      />
 
       {/* Module-wise Execution */}
       {modules.map((module) => (

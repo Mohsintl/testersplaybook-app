@@ -14,6 +14,7 @@
 */
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { getProjectMemberRole } from "@/lib/project-access";
 import { redirect } from "next/navigation";
 import { calculateTestRunSummary } from "@/lib/test-runs/summary";
 import TestRunExecutionClient from "./TestRunExecutionClient";
@@ -36,7 +37,7 @@ export default async function TestRunPage({
     select: {
       id: true,
       name: true,
-      project: { select: { name: true } },
+      project: { select: { id: true, name: true } },
       // `setup` is a scalar (JSON) field — use `select` not `include`
       setup: true,
       assignedToId: true,
@@ -109,6 +110,10 @@ export default async function TestRunPage({
     modulesMap.get(moduleId).results.push(result);
   }
 
+  // Determine current user's project role to enable owner-only actions
+  const role = await getProjectMemberRole(testRun.project.id, session.user.id);
+  const canEdit = role === "OWNER";
+
   return (
     <TestRunExecutionClient
       testRun={{
@@ -125,6 +130,7 @@ export default async function TestRunPage({
         // forward setup (may be null) so the client can show Execution Setup
         setup: testRun.setup ?? null,
       }}
+      canEdit={canEdit}
     />
   );
 }
