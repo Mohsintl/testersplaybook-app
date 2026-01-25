@@ -108,6 +108,8 @@ model Project {
   testCases TestCase[]
   testRuns  TestRun[]
   behaviors ProjectBehavior[]
+  productSpec ProductSpec?
+  uiRefs      ProjectUIReference[]
 
   bugs        Bug[]
   invitations Invitation[]
@@ -335,4 +337,49 @@ model ProjectBehavior {
 
   @@index([projectId])
   @@index([moduleId])
+}
+
+
+
+
+model ProductSpec {
+  id          String   @id @default(cuid())
+  projectId   String   @unique
+
+  overview    String?   // What is this product?
+  coreFlows   String?   // High-level flows (markdown/text)
+  notes       String?   // Extra context
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("product_specs")
+}
+
+
+
+
+enum UIReferenceSource {
+  FIGMA
+  SCREENSHOT
+  OTHER
+}
+
+model ProjectUIReference {
+  id          String   @id @default(cuid())
+  projectId   String
+
+  title       String
+  imageUrl    String
+  source      UIReferenceSource @default(SCREENSHOT)
+  description String?
+
+  createdAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("project_ui_references")
 }
