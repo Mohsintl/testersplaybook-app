@@ -13,6 +13,7 @@ import Button from "@mui/material/Button";
 import Link from "next/link";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 import { MenuItem, Select, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Card, CardContent, TextField, Typography } from "@mui/material";
+import SetupModal from "@/components/test-run/SetupModal";
 
 
 type TestRun = {
@@ -111,7 +112,7 @@ export default function TestRunsClient({
           name: json.data.name,
           startedAt: json.data.startedAt,
           endedAt: json.data.endedAt,
-          status: "STARTED",
+          status: "CREATED",
           setup: setup,
         },
       ]);
@@ -147,7 +148,7 @@ export default function TestRunsClient({
           name: json.data.name,
           startedAt: json.data.startedAt,
           endedAt: json.data.endedAt,
-          status: "STARTED",
+          status: "CREATED",
           setup: tempSetup,
         },
       ]);
@@ -210,60 +211,14 @@ export default function TestRunsClient({
       </div>
 
       {/* Setup modal shown when user clicks Start Run */}
-      <Dialog open={setupModalOpen} onClose={() => setSetupModalOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Execution Setup (optional)</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Provide execution setup details for this run, or skip to create the run without setup.
-          </DialogContentText>
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="h6">Execution Setup</Typography>
-
-              <TextField
-                label="Environment URL"
-                fullWidth
-                margin="normal"
-                value={tempSetup.environment}
-                onChange={(e) => setTempSetup({ ...tempSetup, environment: e.target.value })}
-              />
-
-              <TextField
-                label="Build / Version"
-                fullWidth
-                margin="normal"
-                value={tempSetup.build}
-                onChange={(e) => setTempSetup({ ...tempSetup, build: e.target.value })}
-              />
-
-              <TextField
-                label="Credentials"
-                fullWidth
-                margin="normal"
-                value={tempSetup.credentials}
-                onChange={(e) => setTempSetup({ ...tempSetup, credentials: e.target.value })}
-              />
-
-              <TextField
-                label="Additional Notes"
-                fullWidth
-                multiline
-                rows={3}
-                margin="normal"
-                value={tempSetup.notes}
-                onChange={(e) => setTempSetup({ ...tempSetup, notes: e.target.value })}
-              />
-
-            </CardContent>
-          </Card>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSetupModalOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={confirmCreateWithSetup} disabled={loading}>
-            {loading ? "Creating…" : "Create Run"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <SetupModal
+        open={setupModalOpen}
+        onClose={() => setSetupModalOpen(false)}
+        tempSetup={tempSetup}
+        setTempSetup={setTempSetup}
+        onConfirm={confirmCreateWithSetup}
+        loading={loading}
+      />
 
       {/* List */}
       <ul style={{ marginTop: 16 }}>

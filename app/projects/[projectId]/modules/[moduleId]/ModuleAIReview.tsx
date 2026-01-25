@@ -15,6 +15,8 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
+import Section from "@/components/ui/Section";
+import AIUsageDialog from "@/components/ai/AIUsageDialog";
 
 type TestCase = {
   id: string;
@@ -162,43 +164,14 @@ export default function ModuleAIReview({
         </div>
       )}
 
-      <Dialog open={aiLimitOpen} onClose={() => setAiLimitOpen(false)}>
-        <DialogTitle>AI Usage Limit Reached</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {aiLimitMessage ?? "You've reached your AI usage limit for today."}
-          </DialogContentText>
-          {aiRemaining !== null && (
-            <DialogContentText sx={{ mt: 1 }}>
-              Remaining calls: {aiRemaining}
-            </DialogContentText>
-          )}
-          <DialogContentText sx={{ mt: 1 }}>
-            You can wait until your quota resets or upgrade to increase limits.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAiLimitOpen(false)}>Close</Button>
-          <Button component="a" href="/pricing" variant="contained">
-            Upgrade
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <AIUsageDialog
+        open={aiLimitOpen}
+        onClose={() => setAiLimitOpen(false)}
+        message={aiLimitMessage}
+        remaining={aiRemaining}
+      />
     </div>
   );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div style={{ marginTop: 12 }}>
-      <h4>{title}</h4>
-      <div>{children}</div>
-    </div>
-  );
-}
+// Section extracted to components/ui/Section.tsx

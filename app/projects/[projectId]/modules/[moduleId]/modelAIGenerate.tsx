@@ -16,6 +16,7 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
+import AIUsageDialog from "@/components/ai/AIUsageDialog";
 
 type GeneratedTestCase = {
   title: string;
@@ -223,28 +224,12 @@ export default function ModuleAIGenerate({
         </p>
       )}
 
-      <Dialog open={aiLimitOpen} onClose={() => setAiLimitOpen(false)}>
-        <DialogTitle>AI Usage Limit Reached</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {aiLimitMessage ?? "You've reached your AI usage limit for today."}
-          </DialogContentText>
-          {aiRemaining !== null && (
-            <DialogContentText sx={{ mt: 1 }}>
-              Remaining calls: {aiRemaining}
-            </DialogContentText>
-          )}
-          <DialogContentText sx={{ mt: 1 }}>
-            You can wait until your quota resets or upgrade to increase limits.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAiLimitOpen(false)}>Close</Button>
-          <Button component="a" href="/pricing" variant="contained">
-            Upgrade
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <AIUsageDialog
+        open={aiLimitOpen}
+        onClose={() => setAiLimitOpen(false)}
+        message={aiLimitMessage}
+        remaining={aiRemaining}
+      />
     </section>
   );
 }
