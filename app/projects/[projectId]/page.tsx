@@ -14,6 +14,9 @@ import ProjectLayout from "../components/ProjectLayout";
 import ProjectBehaviorClient from "./ProjectBehaviorClient";
 import TestRunsClient from "../components/TestRunsClient";
 import InviteMember from "../components/InviteMember";
+import ProductSpecs from "./ProductSpec";
+import UIReferences from "./UIReferences";
+import { Stack } from "@mui/material";
 
 
 export default async function ProjectPage({
@@ -126,10 +129,21 @@ export default async function ProjectPage({
           </div>
         }
         extraRightContent={
-          <ProjectBehaviorClient
+        <Stack spacing={3} mt={3}>
+  <ProductSpecs
+    projectId={projectId}
+    canEdit={myRole === "OWNER"}
+  />
+   <ProjectBehaviorClient
             projectId={project.id}
             existingBehaviors={behaviors}
           />
+
+  <UIReferences
+    projectId={projectId}
+    canEdit={myRole === "OWNER"}
+  />
+</Stack>
         }
       />
     );

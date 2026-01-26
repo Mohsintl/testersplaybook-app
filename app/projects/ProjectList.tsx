@@ -78,58 +78,28 @@ export default function ProjectList({ projects }: { projects: Project[] }) {
             spacing={2}
             alignItems="center"
           >
-            {project.role === "CONTRIBUTOR" ? (
-              <div
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  color: "rgba(0,0,0,0.6)",
-                  cursor: "default",
-                }}
-                title="Contributors cannot open this project"
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Typography variant="h6" component="span">
-                    {project.name}
-                  </Typography>
-                  {project.role && <Chip label={project.role} size="small" />}
-                </div>
-                {project.description && (
-                  <Typography
-                    variant="body2"
-                    component="span"
-                    sx={{ ml: 1, color: "text.secondary" }}
-                  >
-                    — {project.description}
-                  </Typography>
+            <a
+              href={`/projects/${project.id}`}
+              style={{ flex: 1, textDecoration: "none", color: "inherit", display: "flex", alignItems: "center", gap: 8 }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Typography variant="h6" component="span">
+                  {project.name}
+                </Typography>
+                {project.role && (
+                  <Chip label={project.role} size="small" />
                 )}
               </div>
-            ) : (
-              <a
-                href={`/projects/${project.id}`}
-                style={{ flex: 1, textDecoration: "none", color: "inherit", display: "flex", alignItems: "center", gap: 8 }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Typography variant="h6" component="span">
-                    {project.name}
-                  </Typography>
-                  {project.role && (
-                    <Chip label={project.role} size="small" />
-                  )}
-                </div>
-                {project.description && (
-                  <Typography
-                    variant="body2"
-                    component="span"
-                    sx={{ ml: 1, color: "text.secondary" }}
-                  >
-                    — {project.description}
-                  </Typography>
-                )}
-              </a>
-            )}
+              {project.description && (
+                <Typography
+                  variant="body2"
+                  component="span"
+                  sx={{ ml: 1, color: "text.secondary" }}
+                >
+                  — {project.description}
+                </Typography>
+              )}
+            </a>
             {project.role !== "CONTRIBUTOR" && (
               <Button
                 variant="contained"
