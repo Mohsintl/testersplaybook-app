@@ -17,6 +17,7 @@ import InviteMember from "../components/InviteMember";
 import ProductSpecs from "./ProductSpec";
 import UIReferences from "./UIReferences";
 import { Stack } from "@mui/material";
+import ProductSpecEditor from "./ProductSpecEditor";
 
 
 export default async function ProjectPage({
@@ -51,7 +52,7 @@ export default async function ProjectPage({
       return <p style={{ padding: "24px" }}>Project not found</p>;
     }
 
-    
+
     console.log("[ProjectPage] Project data fetched successfully"); // Debug log
 
     const behaviors = await prisma.projectBehavior.findMany({
@@ -92,18 +93,18 @@ export default async function ProjectPage({
 
 
     const projectMembers = await prisma.projectMember.findMany({
-  where: { projectId },
-  select: {
-    role: true,
-    user: {
+      where: { projectId },
       select: {
-        id: true,
-        name: true,
-        email: true,
+        role: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
-    },
-  },
-});
+    });
 
     // Determine current user's role in this project
     const myRole = projectMembers.find(pm => pm.user.id === session.user.id)?.role;
@@ -113,7 +114,23 @@ export default async function ProjectPage({
       <ProjectLayout
         title={project.name}
         description={project.description ?? "No description"}
-        leftContent={<ModuleList modules={project.modules} projectId={projectId} />}
+        leftContent={<Stack spacing={3} mt={3}>
+          <ProductSpecEditor
+            projectId={projectId}
+            editable={myRole === "OWNER"} // contributor = read-only
+          />
+          <ProjectBehaviorClient
+            projectId={project.id}
+            existingBehaviors={behaviors}
+          />
+
+          <UIReferences
+            projectId={projectId}
+            canEdit={myRole === "OWNER"}
+          />
+        </Stack>
+
+        }
         rightContent={
           <div>
             <CreateModuleForm projectId={projectId} />
@@ -123,27 +140,13 @@ export default async function ProjectPage({
               members={projectMembers}
             />
             {myRole === "OWNER" && (
-                <InviteMember projectId={projectId} />
-)}
+              <InviteMember projectId={projectId} />
+            )}
 
           </div>
         }
         extraRightContent={
-        <Stack spacing={3} mt={3}>
-  <ProductSpecs
-    projectId={projectId}
-    canEdit={myRole === "OWNER"}
-  />
-   <ProjectBehaviorClient
-            projectId={project.id}
-            existingBehaviors={behaviors}
-          />
-
-  <UIReferences
-    projectId={projectId}
-    canEdit={myRole === "OWNER"}
-  />
-</Stack>
+          <ModuleList modules={project.modules} projectId={projectId} />
         }
       />
     );

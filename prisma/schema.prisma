@@ -346,9 +346,7 @@ model ProductSpec {
   id          String   @id @default(cuid())
   projectId   String   @unique
 
-  overview    String?   // What is this product?
-  coreFlows   String?   // High-level flows (markdown/text)
-  notes       String?   // Extra context
+  content     Json
 
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

@@ -1,8 +1,11 @@
- import { NextResponse } from "next/server";
+export const runtime = "nodejs";
+
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthSession } from "@/lib/auth";
 import { getProjectMemberRole } from "@/lib/project-access";
 
+/* ---------------- GET PRODUCT SPEC ---------------- */
 export async function GET(
   _req: Request,
   context: { params: Promise<{ projectId: string }> }
@@ -14,6 +17,7 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Any project member can read
   const role = await getProjectMemberRole(projectId, session.user.id);
   if (!role) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -23,11 +27,13 @@ export async function GET(
     where: { projectId },
   });
 
-  return NextResponse.json({ success: true, data: spec });
+  return NextResponse.json({
+    success: true,
+    data: spec ?? null,
+  });
 }
 
-
-
+/* ---------------- SAVE / UPDATE PRODUCT SPEC ---------------- */
 export async function POST(
   req: Request,
   context: { params: Promise<{ projectId: string }> }
@@ -39,30 +45,34 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Only OWNER can edit
   const role = await getProjectMemberRole(projectId, session.user.id);
   if (role !== "OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { content } = await req.json();
+
+  if (!content) {
     return NextResponse.json(
-      { error: "Only owner can update product specs" },
-      { status: 403 }
+      { error: "Content is required" },
+      { status: 400 }
     );
   }
 
-  const { overview, coreFlows, notes } = await req.json();
-
   const spec = await prisma.productSpec.upsert({
     where: { projectId },
-    update: {
-      overview,
-      coreFlows,
-      notes,
-    },
     create: {
       projectId,
-      overview,
-      coreFlows,
-      notes,
+      content,
+    },
+    update: {
+      content,
     },
   });
 
-  return NextResponse.json({ success: true, data: spec });
+  return NextResponse.json({
+    success: true,
+    data: spec,
+  });
 }
