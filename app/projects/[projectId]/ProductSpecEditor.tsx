@@ -26,7 +26,7 @@ export default function ProductSpecEditor({
         placeholder: "Start writing product specifications here…",
       }),
     ],
-    content: initialContent , // ✅ NEVER null
+    content: "" , // ✅ NEVER null
   });
 
   /* ---------------- LOAD CONTENT ---------------- */
@@ -34,10 +34,10 @@ export default function ProductSpecEditor({
     if (!editor) return;
 
     async function load() {
-      const res = await fetch(`/api/projects/${projectId}/spec`);
+      const res = await fetch(`/api/projects/${projectId}/specs`);
       const json = await res.json();
 
-      if (json?.data?.content) {
+      if (json?.data?.content && editor) {
         setInitialContent(json.data.content);
         editor.commands.setContent(json.data.content);
       }
@@ -54,11 +54,12 @@ export default function ProductSpecEditor({
       if (saveTimeout.current) {
         clearTimeout(saveTimeout.current);
       }
+    
 
       saveTimeout.current = setTimeout(async () => {
         setSaving(true);
 
-        await fetch(`/api/projects/${projectId}/spec`, {
+        await fetch(`/api/projects/${projectId}/specs`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
