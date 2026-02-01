@@ -92,7 +92,7 @@ export default function ProductSpecEditor({
           border: "1px solid #ddd",
           borderRadius: 2,
           padding: 2,
-          minHeight: 220,
+          minHeight: 400,
           backgroundColor: editable ? "#fff" : "#fafafa",
         }}
       >
