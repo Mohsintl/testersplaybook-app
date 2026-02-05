@@ -14,7 +14,6 @@ import ProjectLayout from "../components/ProjectLayout";
 import ProjectBehaviorClient from "./ProjectBehaviorClient";
 import TestRunsClient from "../components/TestRunsClient";
 import InviteMember from "../components/InviteMember";
-import ProductSpecs from "./ProductSpec";
 import UIReferences from "./UIReferences";
 import { Stack } from "@mui/material";
 import ProductSpecEditor from "./ProductSpecEditor";
