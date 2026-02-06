@@ -1,9 +1,7 @@
 /*
-  API: Dashboard Data
-  -------------------
-  Returns user-specific dashboard data such as assigned TestRuns. This
-  endpoint performs authentication and queries the database for items
-  relevant to the current user.
+  API: Dashboard Data (Tasks + Test Runs)
+  --------------------------------------
+  Returns all dashboard-relevant data for the logged-in user.
 */
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
@@ -19,22 +17,121 @@ export async function GET() {
 
   const userId = session.user.id;
 
-  const assignedRuns = await prisma.testRun.findMany({
+  /* ---------------- PROJECT COUNT ---------------- */
+  const projects = await prisma.projectMember.findMany({
+    where: { userId },
+    select: { projectId: true },
+  });
+
+  /* ---------------- TASKS ---------------- */
+  const assignedTasks = await prisma.task.findMany({
     where: {
       assignedToId: userId,
+      status: { not: "DONE" },
     },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      status: true,
       project: {
         select: { id: true, name: true },
       },
     },
-    orderBy: {
-      startedAt: "desc",
-    },
+    orderBy: { createdAt: "desc" },
   });
 
+  const completedTasks = await prisma.task.findMany({
+    where: {
+      assignedToId: userId,
+      status: "DONE",
+    },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      project: {
+        select: { id: true, name: true },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  const createdTasks = await prisma.task.findMany({
+    where: { createdById: userId },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      project: {
+        select: { id: true, name: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  /* ---------------- TEST RUNS ---------------- */
+  const assignedRuns = await prisma.testRun.findMany({
+    where: {
+      assignedToId: userId,
+      endedAt: null,
+    },
+    select: {
+      id: true,
+      name: true,
+      startedAt: true,
+      endedAt: true,
+      project: {
+        select: { id: true, name: true },
+      },
+    },
+    orderBy: { startedAt: "desc" },
+  });
+
+  const completedRuns = await prisma.testRun.findMany({
+    where: {
+      assignedToId: userId,
+      endedAt: { not: null },
+    },
+    select: {
+      id: true,
+      name: true,
+      startedAt: true,
+      endedAt: true,
+      project: {
+        select: { id: true, name: true },
+      },
+    },
+    orderBy: { endedAt: "desc" },
+  });
+
+  const createdRuns = await prisma.testRun.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      name: true,
+      startedAt: true,
+      endedAt: true,
+      assignedTo: {
+        select: { id: true, name: true },
+      },
+      project: {
+        select: { id: true, name: true },
+      },
+    },
+    orderBy: { startedAt: "desc" },
+  });
+
+  /* ---------------- RESPONSE ---------------- */
   return NextResponse.json({
     success: true,
-    data: assignedRuns,
+    data: {
+      projectCount: projects.length,
+      assignedTasks,
+      completedTasks,
+      createdTasks,
+      assignedRuns,
+      completedRuns,
+      createdRuns,
+    },
   });
 }
