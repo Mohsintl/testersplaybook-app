@@ -17,6 +17,8 @@ import InviteMember from "../components/InviteMember";
 import UIReferences from "./UIReferences";
 import { Stack } from "@mui/material";
 import ProductSpecEditor from "./ProductSpecEditor";
+import ProjectTasksSection from "./ProjectTaskSection";
+import TaskList from "../components/Tasklist";
 
 
 export default async function ProjectPage({
@@ -133,6 +135,8 @@ export default async function ProjectPage({
         rightContent={
           <div>
             <CreateModuleForm projectId={projectId} />
+            <ProjectTasksSection projectId={projectId} members={projectMembers} />
+            {/* <TaskList projectId={projectId} /> */}
             <TestRunsClient
               projectId={projectId}
               initialRuns={formattedTestRuns} // Use the formatted test runs

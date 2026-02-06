@@ -53,125 +53,51 @@ if (!session?.user?.id) {
 // Check project access
 const role = await getProjectMember(projectId, session.user.id);
 if (!role) {
-  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-}
-```
+  # TestersPlaybook AI Agent Instructions
 
-**Authorization rules** (see [docs/AUTH_MODEL.md](docs/AUTH_MODEL.md)):
+  This file captures the essential, project-specific rules an AI coding agent needs to be productive.
 
-- `OWNER`: Full project control (delete, billing, invitations).
-- `CONTRIBUTOR`: Create/edit test cases, runs, and bugs only.
+  Project snapshot
+  - Next.js App Router + TypeScript, server-rendered pages, Tailwind styling.
+  - PostgreSQL via Prisma; auth via NextAuth v4 (Google); AI features call OpenAI.
 
-Use helper functions in [lib/permissions.ts](lib/permissions.ts):
+  Quick start (common commands)
+  - `npm run dev` — start dev server.
+  - `npx prisma generate` — regenerate client.
+  - `npx prisma migrate dev` — run migrations.
 
-- `canEditProject(role)` — returns true for OWNER or CONTRIBUTOR.
-- `canDeleteProject(role)` — returns true for OWNER only.
+  Auth & API rule (must follow)
+  - Always validate session and project membership in API routes. Pattern example:
+  ```ts
+  const session = await getAuthSession();
+  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const role = await getProjectMember(projectId, session.user.id);
+  if (!role) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  ```
+  See `lib/auth.ts` and `lib/project-access.ts` for helpers.
 
-### 2. Next.js 15+ Route Handler Params
+  Route handler pattern
+  - Dynamic route handlers must `await context.params` (Next.js 15+). See `app/api/projects/[projectId]/modules/route.ts`.
 
-**CRITICAL**: Always `await context.params` in dynamic routes:
+  AI integration (concise)
+  - Features: generate/improve/analyze test cases. Limits enforced per-user (`generate`, `improve`, `analyze`).
+  - Workflow: check usage limits → fetch data via Prisma → build prompt (lib/ai/prompts) → call OpenAI (lib/ai/client.ts) → parse JSON responses.
+  - All AI prompts return structured JSON (not free text); see `lib/ai/actions/testcase.ts` and `lib/ai/usage.ts`.
 
-```typescript
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ projectId: string }> }
-) {
-  const { projectId } = await context.params; // ✅ MUST AWAIT
-  // ... rest of handler
-}
-```
+  Prisma & models
+  - Always import the shared client: `import prisma from '@/lib/prisma'`.
+  - Use `include` for relations. TestCase `steps` is a JSON array; `tags` is `String[]`.
 
-See [app/api/projects/[projectId]/modules/route.ts](app/api/projects/[projectId]/modules/route.ts) for reference.
+  Conventions & gotchas
+  - Route handlers export `export const runtime = "nodejs";`.
+  - Human-in-the-loop: AI outputs are suggestions and must be reviewed before committing.
+  - Keep module/testcase folder structure flat per `prisma/schema.prisma`.
 
-### 3. AI Integration
+  Key files to inspect
+  - Auth: `app/api/auth/[...nextauth]/route.ts`
+  - Project access: `lib/project-access.ts`
+  - Shared Prisma client: `lib/prisma.ts`
+  - AI actions: `lib/ai/actions/testcase.ts`
+  - Example route pattern: `app/api/projects/[projectId]/modules/route.ts`
 
-**AI Features**:
-
-- Test case generation (3 new cases from existing ones).
-- Test case improvement (clarity/correctness).
-- Module analysis (coverage gaps, duplicates, risk areas).
-
-**Usage limits** (per user, per day):
-
-- `generate`: 10 requests/day.
-- `improve`: 20 requests/day.
-- `analyze`: 5 requests/day.
-
-**AI workflow** (see [lib/ai/actions/testcase.ts](lib/ai/actions/testcase.ts)):
-
-1. Check limits with `checkAndRecordAIUsage(userId, action)` in [lib/ai/usage.ts](lib/ai/usage.ts).
-2. Fetch related data from Prisma.
-3. Build prompt using functions in [lib/ai/prompts/](lib/ai/prompts/).
-4. Call OpenAI via [lib/ai/client.ts](lib/ai/client.ts) with `gpt-3.5-turbo` at temperature 0.3.
-5. Parse JSON response (all prompts expect JSON-only responses).
-
-**AI prompts return structured JSON** — never free text:
-
-- `reviewTestCasePrompt()` → `{ issues, missing_scenarios, suggested_improvements }`.
-- `generateTestCasesPrompt()` → `{ generated_test_cases: [{ title, steps[], expected }] }`.
-- `analyzeModulePrompt()` → `{ duplicate_test_cases, missing_coverage, risk_areas, overall_quality }`.
-
-### 4. Prisma Usage
-
-**Always use the shared Prisma client**:
-
-```typescript
-import prisma from "@/lib/prisma";
-```
-
-**Common patterns**:
-
-- Cascade deletes are configured in schema — no manual cleanup needed.
-- Use `include` for eager loading relations, not separate queries.
-- Test cases store `steps` as JSON array (not string).
-- Tags are stored as `String[]` array.
-
-### 5. Test Case Structure
-
-TestCase model fields:
-
-- `steps`: JSON array of step strings (not stringified JSON).
-- `expected`: Single expected result string.
-- `type`: `MANUAL` or `AUTOMATION` (default: MANUAL).
-- `tags`: String array for categorization.
-- `automationRef`: Optional 1:1 relation with repo URL, file path, test name.
-
-## Development Workflow
-
-**Run development server**:
-
-```bash
-npm run dev
-```
-
-**Database operations**:
-
-```bash
-npx prisma studio          # View/edit data in browser.
-npx prisma migrate dev     # Create and apply migrations.
-npx prisma generate        # Regenerate Prisma Client.
-```
-
-**Environment variables required**:
-
-- `DATABASE_URL` — PostgreSQL connection string.
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — OAuth credentials.
-- `OPENAI_API_KEY` — For AI features.
-- `NEXTAUTH_SECRET` — Auth token signing key.
-- `NEXTAUTH_URL` — Application base URL.
-
-## Key Files Reference
-
-- **Auth setup**: [app/api/auth/[...nextauth]/route.ts](app/api/auth/[...nextauth]/route.ts).
-- **Schema**: [prisma/schema.prisma](prisma/schema.prisma).
-- **AI client**: [lib/ai/client.ts](lib/ai/client.ts).
-- **Project access control**: [lib/project-access.ts](lib/project-access.ts).
-- **Product requirements**: [docs/PRODUCT_OVERVIEW.md](docs/PRODUCT_OVERVIEW.md), [docs/MVP_SCOPE.md](docs/MVP_SCOPE.md).
-
-## Conventions
-
-- **No nested folders** beyond Module level — flat structure for test cases.
-- **Human-in-the-loop AI** — all AI suggestions require user review/approval.
-- **MVP scope** — avoid enterprise features (RBAC, custom workflows, CI/CD integration).
-- **Route handlers** must export runtime: `export const runtime = "nodejs";`.
-- **Error messages** should be user-friendly, not stack traces.
+  If anything here is unclear or you want more examples (API handlers, UI components, or AI prompt shapes), tell me which area and I will expand with concrete snippets.
