@@ -18,7 +18,8 @@ import UIReferences from "./UIReferences";
 import { Stack } from "@mui/material";
 import ProductSpecEditor from "./ProductSpecEditor";
 import ProjectTasksSection from "./ProjectTaskSection";
-import TaskList from "../components/Tasklist";
+import TaskList from "../components/TaskList";
+
 
 
 export default async function ProjectPage({
@@ -106,6 +107,14 @@ export default async function ProjectPage({
         },
       },
     });
+    const tasks = await prisma.task.findMany({
+  where: { projectId },
+  orderBy: { createdAt: "desc" },
+  include: {
+    assignedTo: { select: { id: true, name: true } },
+  },
+});
+
 
     // Determine current user's role in this project
     const myRole = projectMembers.find(pm => pm.user.id === session.user.id)?.role;
@@ -136,7 +145,7 @@ export default async function ProjectPage({
           <div>
             <CreateModuleForm projectId={projectId} />
             <ProjectTasksSection projectId={projectId} members={projectMembers} />
-            {/* <TaskList projectId={projectId} /> */}
+            <TaskList  tasks={tasks} />
             <TestRunsClient
               projectId={projectId}
               initialRuns={formattedTestRuns} // Use the formatted test runs

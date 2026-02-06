@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthSession } from "@/lib/auth";
+import { getProjectMemberRole } from "@/lib/project-access";
 
 export async function POST(
   req: Request,
@@ -36,6 +37,7 @@ export async function POST(
 }
 
 
+
 export async function GET(
   req: Request,
   context: { params: Promise<{ projectId: string }> }
@@ -47,14 +49,29 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const role = await getProjectMemberRole(projectId, session.user.id);
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const tasks = await prisma.task.findMany({
     where: { projectId },
     orderBy: { createdAt: "desc" },
     include: {
-      assignedTo: { select: { id: true, name: true } },
-      createdBy: { select: { id: true, name: true } },
+      assignedTo: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      creator: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   });
 
-  return NextResponse.json({ success: true, data: tasks });
+  return NextResponse.json({ data: tasks });
 }

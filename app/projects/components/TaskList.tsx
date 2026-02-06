@@ -6,60 +6,72 @@ import {
   Typography,
   Stack,
   Chip,
-  Button,
+  Box,
 } from "@mui/material";
 
 type Task = {
   id: string;
   title: string;
-  description?: string;
-  status: "TODO" | "IN_PROGRESS" | "DONE";
-  assignedTo?: { name: string | null };
+  description: string | null;
+  status: string;
+  dueDate: string | null;
+  assignedTo: {
+    id: string;
+    name: string | null;
+  } | null;
 };
 
 export default function TaskList({
   tasks,
-  onStatusChange,
 }: {
   tasks: Task[];
-  onStatusChange: (id: string, status: Task["status"]) => void;
 }) {
+  if (tasks.length === 0) {
+    return (
+      <Typography color="text.secondary">
+        No tasks created yet.
+      </Typography>
+    );
+  }
+
   return (
     <Stack spacing={2}>
       {tasks.map((task) => (
-        <Card key={task.id}>
+        <Card key={task.id} variant="outlined">
           <CardContent>
-            <Typography fontWeight={600}>{task.title}</Typography>
-
-            {task.description && (
-              <Typography color="text.secondary" mt={1}>
-                {task.description}
+            <Stack spacing={1}>
+              <Typography fontWeight={600}>
+                {task.title}
               </Typography>
-            )}
 
-            <Stack direction="row" spacing={1} mt={2}>
-              <Chip label={task.status} />
-              {task.assignedTo?.name && (
-                <Chip label={`👤 ${task.assignedTo.name}`} />
+              {task.description && (
+                <Typography color="text.secondary">
+                  {task.description}
+                </Typography>
               )}
-            </Stack>
 
-            <Stack direction="row" spacing={1} mt={2}>
-              {task.status !== "TODO" && (
-                <Button size="small" onClick={() => onStatusChange(task.id, "TODO")}>
-                  Todo
-                </Button>
-              )}
-              {task.status !== "IN_PROGRESS" && (
-                <Button size="small" onClick={() => onStatusChange(task.id, "IN_PROGRESS")}>
-                  Start
-                </Button>
-              )}
-              {task.status !== "DONE" && (
-                <Button size="small" onClick={() => onStatusChange(task.id, "DONE")}>
-                  Done
-                </Button>
-              )}
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Chip
+                  label={task.status}
+                  size="small"
+                />
+
+                {task.assignedTo && (
+                  <Chip
+                    label={`Assigned to: ${task.assignedTo.name ?? "User"}`}
+                    size="small"
+                    variant="outlined"
+                  />
+                )}
+
+                {task.dueDate && (
+                  <Chip
+                    label={`Due: ${new Date(task.dueDate).toLocaleDateString()}`}
+                    size="small"
+                    color="warning"
+                  />
+                )}
+              </Stack>
             </Stack>
           </CardContent>
         </Card>
