@@ -14,8 +14,10 @@ import Button from "@mui/material/Button";
 
 export default function CreateModuleForm({
   projectId,
+  canCreate,
 }: {
   projectId: string;
+  canCreate: boolean;
 }) {
   const form = useForm({
     defaultValues: {
@@ -52,16 +54,18 @@ export default function CreateModuleForm({
 
   return (
     <div>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => setShowForm(!showForm)}
-        sx={{ mb: 2 }}
-      >
-        {showForm ? "Close Form" : "Create Module"}
-      </Button>
+      {canCreate && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setShowForm(!showForm)}
+          sx={{ mb: 2 }}
+        >
+          {showForm ? "Close Form" : "Create Module"}
+        </Button>
+      )}
 
-      {showForm && (
+      {canCreate && showForm && (
         <form onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={3} sx={{ mt: 4 }}>
             <TextField

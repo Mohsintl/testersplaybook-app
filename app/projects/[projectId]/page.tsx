@@ -141,7 +141,10 @@ export default async function ProjectPage({
         }
         rightContent={
           <div>
-            <CreateModuleForm projectId={projectId} />
+            <CreateModuleForm
+              projectId={projectId}
+              canCreate={myRole === "OWNER"}
+            />
             <ProjectTasksSection
               projectId={projectId}
               members={projectMembers}
@@ -159,7 +162,11 @@ export default async function ProjectPage({
           </div>
         }
         extraRightContent={
-          <ModuleList modules={project.modules} projectId={projectId} />
+          <ModuleList
+            modules={project.modules}
+            projectId={projectId}
+            canDelete={myRole === "OWNER"}
+          />
         }
       />
     );
