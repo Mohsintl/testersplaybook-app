@@ -43,6 +43,7 @@ export default function TaskExecutionClient({
   const [saving, setSaving] = useState(false);
 
   async function updateStatus(nextStatus: TaskStatus) {
+    if (!editable) return;
     setStatus(nextStatus);
 
     await fetch(`/api/tasks/${task.id}`, {
@@ -120,6 +121,7 @@ export default function TaskExecutionClient({
                 <Button
                   key={s}
                   variant={status === s ? "contained" : "outlined"}
+                  disabled={!editable}
                   onClick={() => updateStatus(s)}
                 >
                   {s.replace("_", " ")}

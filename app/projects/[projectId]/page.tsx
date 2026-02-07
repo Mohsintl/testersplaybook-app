@@ -142,7 +142,11 @@ export default async function ProjectPage({
         rightContent={
           <div>
             <CreateModuleForm projectId={projectId} />
-            <ProjectTasksSection projectId={projectId} members={projectMembers} />
+            <ProjectTasksSection
+              projectId={projectId}
+              members={projectMembers}
+              canCreate={myRole === "OWNER"}
+            />
             <TaskList  tasks={tasks} />
             <TestRunsClient
               projectId={projectId}

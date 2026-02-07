@@ -17,9 +17,11 @@ type ProjectMember = {
 export default function ProjectTasksSection({
   projectId,
   members,
+  canCreate,
 }: {
   projectId: string;
   members: ProjectMember[];
+  canCreate: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -31,21 +33,25 @@ export default function ProjectTasksSection({
 
   return (
     <>
-      <Button
-        variant="contained"
-        onClick={() => setOpen(true)}
-        sx={{ mb: 2 }}
-      >
-        ➕ New Task
-      </Button>
+      {canCreate && (
+        <Button
+          variant="contained"
+          onClick={() => setOpen(true)}
+          sx={{ mb: 2 }}
+        >
+          ➕ New Task
+        </Button>
+      )}
 
-      <CreateTaskModal
-        open={open}
-        onClose={() => setOpen(false)}
-        projectId={projectId}
-        members={members}
-        onCreated={handleCreated}
-      />
+      {canCreate && (
+        <CreateTaskModal
+          open={open}
+          onClose={() => setOpen(false)}
+          projectId={projectId}
+          members={members}
+          onCreated={handleCreated}
+        />
+      )}
     </>
   );
 }
