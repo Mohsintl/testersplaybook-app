@@ -26,7 +26,7 @@ export default function ProductSpecEditor({
         placeholder: "Start writing product specifications here…",
       }),
     ],
-    content: "" , // ✅ NEVER null
+    content: "", // ✅ NEVER null
   });
 
   /* ---------------- LOAD CONTENT ---------------- */
@@ -54,7 +54,6 @@ export default function ProductSpecEditor({
       if (saveTimeout.current) {
         clearTimeout(saveTimeout.current);
       }
-    
 
       saveTimeout.current = setTimeout(async () => {
         setSaving(true);

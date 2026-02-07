@@ -1,4 +1,5 @@
 "use client";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -49,6 +50,9 @@ export default function UIReferences({
   const [selectedRef, setSelectedRef] = useState<UIReference | null>(null);
   const [openRefModal, setOpenRefModal] = useState(false);
 
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
   function openModal(ref: UIReference) {
     setSelectedRef(ref);
     setOpenRefModal(true);
@@ -56,6 +60,35 @@ export default function UIReferences({
   function closeModal() {
     setSelectedRef(null);
     setOpenRefModal(false);
+  }
+
+  async function handleDeleteReference() {
+    if (!selectedRef) return;
+
+    setDeleting(selectedRef.id);
+    setDeleteModalOpen(false);
+
+    try {
+      const res = await fetch(
+        `/api/projects/${projectId}/ui-references/${selectedRef.id}`,
+        { method: "DELETE" },
+      );
+
+      if (!res.ok) {
+        alert("Failed to delete reference");
+        return;
+      }
+
+      // Remove from local state instead of reload
+      setRefs((prev) => prev.filter((r) => r.id !== selectedRef.id));
+
+      closeModal();
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("Failed to delete reference");
+    } finally {
+      setDeleting(null);
+    }
   }
 
   useEffect(() => {
@@ -254,13 +287,19 @@ export default function UIReferences({
                     </DialogContent>
                     <DialogActions>
                       <Button onClick={closeModal}>Close</Button>
-                      <Button
-                        href={selectedRef?.imageUrl ?? undefined}
-                        target="_blank"
-                        disabled={!selectedRef?.imageUrl}
-                      >
-                        Open in new tab
-                      </Button>
+
+                      {canEdit && (
+                        <Button
+                          variant="contained"
+                          color="error"
+                          onClick={() => setDeleteModalOpen(true)}
+                          disabled={deleting === selectedRef?.id}
+                        >
+                          {deleting === selectedRef?.id
+                            ? "Deleting..."
+                            : "Delete Reference"}
+                        </Button>
+                      )}
                     </DialogActions>
                   </Dialog>
                 </CardContent>
@@ -268,6 +307,15 @@ export default function UIReferences({
             </Grid>
           ))}
         </Grid>
+        {selectedRef && (
+          <DeleteConfirmationModal
+            open={deleteModalOpen}
+            title="Confirm Delete"
+            message={`Are you sure you want to delete the reference "${selectedRef.title}"? This action cannot be undone.`}
+            onConfirm={handleDeleteReference}
+            onCancel={() => setDeleteModalOpen(false)}
+          />
+        )}
       </CardContent>
     </Card>
   );
