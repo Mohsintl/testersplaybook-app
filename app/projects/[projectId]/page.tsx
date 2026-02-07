@@ -86,7 +86,7 @@ export default async function ProjectPage({
     });
 
     // Convert Date objects to ISO strings
-    const formattedTestRuns = testRuns.map((run) => ({
+    const formattedTestRuns = testRuns.map((run: { startedAt: { toISOString: () => any; }; endedAt: { toISOString: () => any; }; }) => ({
       ...run,
       startedAt: run.startedAt.toISOString(),
       endedAt: run.endedAt ? run.endedAt.toISOString() : null,
@@ -116,7 +116,7 @@ export default async function ProjectPage({
 
     // Determine current user's role in this project
     const myRole = projectMembers.find(
-      (pm) => pm.user.id === session.user.id,
+      (pm: { user: { id: string; }; }) => pm.user.id === session.user.id,
     )?.role;
     console.log(`[ProjectPage] current user role: ${myRole}`);
 

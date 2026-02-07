@@ -1,23 +1,25 @@
 # Authorization Model
 
-Authorization is project-level only.
-
-Roles:
+Authorization is project-level only and uses two roles:
 - OWNER
 - CONTRIBUTOR
 
-OWNER:
-- Full access
-- Manage billing
-- Invite contributors
-- Delete project
+## Owner Capabilities
+- Create and delete projects
+- Invite members
+- Create modules
+- Create test runs and assign them
+- Edit Product Specs
+- Add and remove UI references
+- Manage project-level behaviors
 
-CONTRIBUTOR:
+## Contributor Capabilities
+- View project data
 - Create and edit test cases
-- Run test runs
-- Create and edit bugs
-- Cannot delete project
-- Cannot manage billing
-- Cannot invite users
+- Execute assigned test runs
+- Update test results while a run is IN_PROGRESS
+- Create tasks and add comments
 
-No additional roles or permissions in MVP.
+## Notes
+- Module-level behaviors are editable through the module UI. The API currently enforces authentication but does not add role checks.
+- Some operations are strictly owner-only on the server (project deletion, module creation, test run creation, product spec edits, UI reference management).
