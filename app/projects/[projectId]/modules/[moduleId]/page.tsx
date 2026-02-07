@@ -107,6 +107,7 @@ export default async function ModulePage({
           projectId={module.project.id}
           moduleId={module.id}
           existingBehaviors={behaviors}
+          canEdit={myRole === "OWNER"}
         />
       }
     />
