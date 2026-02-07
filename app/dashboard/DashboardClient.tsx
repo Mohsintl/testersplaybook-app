@@ -199,7 +199,7 @@ export default function DashboardClient({
                   variant="outlined"
                   onClick={() =>
                     router.push(
-                      `/projects/${task.project.id}?tab=tasks`
+                      `/tasks/${task.id}`
                     )
                   }
                 >
