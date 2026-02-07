@@ -17,7 +17,7 @@ import InviteMember from "../components/InviteMember";
 import UIReferences from "./UIReferences";
 import { Stack } from "@mui/material";
 import ProductSpecEditor from "./ProductSpecEditor";
-
+import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
 
 export default async function ProjectPage({
   params,
@@ -51,13 +51,12 @@ export default async function ProjectPage({
       return <p style={{ padding: "24px" }}>Project not found</p>;
     }
 
-
     console.log("[ProjectPage] Project data fetched successfully"); // Debug log
 
     const behaviors = await prisma.projectBehavior.findMany({
       where: {
         projectId,
-        scope: "PROJECT"
+        scope: "PROJECT",
       },
       select: {
         id: true,
@@ -68,7 +67,6 @@ export default async function ProjectPage({
     });
 
     console.log(`[ProjectPage] Retrieved ${behaviors.length} behaviors`); // Debug log
-
 
     const testRuns = await prisma.testRun.findMany({
       where: { projectId },
@@ -90,7 +88,6 @@ export default async function ProjectPage({
       endedAt: run.endedAt ? run.endedAt.toISOString() : null,
     }));
 
-
     const projectMembers = await prisma.projectMember.findMany({
       where: { projectId },
       select: {
@@ -106,29 +103,29 @@ export default async function ProjectPage({
     });
 
     // Determine current user's role in this project
-    const myRole = projectMembers.find(pm => pm.user.id === session.user.id)?.role;
+    const myRole = projectMembers.find(
+      (pm) => pm.user.id === session.user.id,
+    )?.role;
     console.log(`[ProjectPage] current user role: ${myRole}`);
 
     return (
       <ProjectLayout
         title={project.name}
         description={project.description ?? "No description"}
-        leftContent={<Stack spacing={3} mt={3}>
-          <ProductSpecEditor
-            projectId={projectId}
-            editable={myRole === "OWNER"} // contributor = read-only
-          />
-          <ProjectBehaviorClient
-            projectId={project.id}
-            existingBehaviors={behaviors}
-          />
+        leftContent={
+          <Stack spacing={3} mt={3}>
+            <SimpleEditor projectId={projectId} editable={myRole === "OWNER"} />
+            {/* <ProductSpecEditor
+              projectId={projectId}
+              editable={myRole === "OWNER"} // contributor = read-only
+            /> */}
+            <ProjectBehaviorClient
+              projectId={project.id}
+              existingBehaviors={behaviors}
+            />
 
-          <UIReferences
-            projectId={projectId}
-            canEdit={myRole === "OWNER"}
-          />
-        </Stack>
-
+            <UIReferences projectId={projectId} canEdit={myRole === "OWNER"} />
+          </Stack>
         }
         rightContent={
           <div>
@@ -138,10 +135,7 @@ export default async function ProjectPage({
               initialRuns={formattedTestRuns} // Use the formatted test runs
               members={projectMembers}
             />
-            {myRole === "OWNER" && (
-              <InviteMember projectId={projectId} />
-            )}
-
+            {myRole === "OWNER" && <InviteMember projectId={projectId} />}
           </div>
         }
         extraRightContent={
@@ -151,6 +145,10 @@ export default async function ProjectPage({
     );
   } catch (error) {
     console.error("[ProjectPage] Error fetching project data:", error); // Debug log
-    return <p style={{ padding: "24px" }}>An error occurred while loading the project</p>;
+    return (
+      <p style={{ padding: "24px" }}>
+        An error occurred while loading the project
+      </p>
+    );
   }
 }

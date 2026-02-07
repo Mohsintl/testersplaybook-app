@@ -25,9 +25,9 @@ const ProjectLayout: React.FC<ProjectLayoutProps> = ({
   extraRightContent,
 }) => {
   return (
-    <main className="w-full h-full border border-gray-300 rounded-md p-2 box-border">
+    <main className="w-full border border-gray-300 rounded-md p-2 box-border">
       <ResponsiveAppBar />
-      <div className="w-full h-full border border-gray-300 rounded-md p-2 box-border">
+      <div className="w-full border border-gray-300 rounded-md p-2 box-border">
         <h1 className="text-lg font-medium mb-4">{title}</h1>
         <p className="text-gray-600 mb-4">{description}</p>
         <div className="flex flex-col md:flex-row gap-4">
