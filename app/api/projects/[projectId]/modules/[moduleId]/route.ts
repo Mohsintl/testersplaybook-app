@@ -17,7 +17,7 @@ export async function DELETE(
   }
 
   const role = await getProjectMemberRole(projectId, session.user.id);
-  if (!role) {
+  if (role !== "OWNER") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
