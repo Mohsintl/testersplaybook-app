@@ -152,6 +152,8 @@ export default async function ProjectPage({
               projectId={projectId}
               initialRuns={formattedTestRuns} // Use the formatted test runs
               members={projectMembers}
+              currentUserId={session.user.id}
+              currentUserRole={myRole ?? "CONTRIBUTOR"}
             />
             {myRole === "OWNER" && <InviteMember projectId={projectId} />}
           </div>
