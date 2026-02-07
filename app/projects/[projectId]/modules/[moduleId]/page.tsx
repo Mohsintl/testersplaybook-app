@@ -97,8 +97,12 @@ export default async function ModulePage({
                 id: tc.id,
                 title: tc.title,
               }))}
+              canReview={myRole === "OWNER"}
             />
-            <ModuleAIGenerate moduleId={module.id} />
+            <ModuleAIGenerate
+              moduleId={module.id}
+              canAdd={myRole === "OWNER"}
+            />
           </div>
         </div>
       }
