@@ -64,7 +64,16 @@ export default function TaskExecutionClient({
     });
 
     const json = await res.json();
-    setComments((prev) => [...prev, json.data]);
+    const created = json.data;
+    setComments((prev) => [
+      ...prev,
+      {
+        id: created.id,
+        content: created.content,
+        authorName: created.author?.name ?? "Unknown",
+        createdAt: created.createdAt,
+      },
+    ]);
     setNewComment("");
     setSaving(false);
   }
