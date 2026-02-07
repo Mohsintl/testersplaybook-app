@@ -115,7 +115,7 @@ export default function TaskExecutionClient({
           <Typography variant="h6">Update Status</Typography>
 
           <Stack direction="row" spacing={1} mt={2}>
-            {(["TODO", "IN_PROGRESS", "BLOCKED", "COMPLETED"] as TaskStatus[]).map(
+            {(["TODO", "IN_PROGRESS", "DONE"] as TaskStatus[]).map(
               (s) => (
                 <Button
                   key={s}
