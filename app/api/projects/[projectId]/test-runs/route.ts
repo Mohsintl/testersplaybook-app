@@ -89,6 +89,11 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const role = await getProjectMemberRole(projectId, session.user.id);
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const runs = await prisma.testRun.findMany({
     where: { projectId },
     orderBy: { startedAt: "desc" },
