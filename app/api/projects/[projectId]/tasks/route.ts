@@ -16,6 +16,11 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const role = await getProjectMemberRole(projectId, session.user.id);
+  if (role !== "OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const { title, description, assignedToId, dueDate } = await req.json();
 
   if (!title) {
