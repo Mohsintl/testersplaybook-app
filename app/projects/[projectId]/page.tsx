@@ -134,6 +134,7 @@ export default async function ProjectPage({
             <ProjectBehaviorClient
               projectId={project.id}
               existingBehaviors={behaviors}
+              canEdit={myRole === "OWNER"}
             />
 
             <UIReferences projectId={projectId} canEdit={myRole === "OWNER"} />
