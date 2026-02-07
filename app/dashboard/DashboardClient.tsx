@@ -1,13 +1,5 @@
 "use client";
 
-/*
-  DashboardClient
-  ---------------
-  Client component responsible for rendering dashboard UI: quick stats,
-  assigned runs, completed runs, and runs created by the user. This file
-  manages only presentation and client navigation; all data is passed in
-  from the server component.
-*/
 import {
   Box,
   Card,
@@ -16,28 +8,23 @@ import {
   Stack,
   Button,
   Chip,
-  CircularProgress,
   Divider,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 
-type AssignedRun = {
+/* ---------------- TYPES ---------------- */
+
+type Task = {
   id: string;
-  name: string;
-  startedAt: Date;
+  title: string;
+  status: "TODO" | "IN_PROGRESS" | "DONE";
   project: {
     id: string;
     name: string;
   };
 };
 
-
-
-type CompletedRun = AssignedRun & {
-  endedAt: Date;
-};
-
-type CreatedRun = {
+type TestRun = {
   id: string;
   name: string;
   startedAt: Date;
@@ -46,44 +33,45 @@ type CreatedRun = {
     id: string;
     name: string;
   };
-  assignedTo: {
-    id: string;
-    name: string | null;
-  } | null;
 };
 
+/* ---------------- COMPONENT ---------------- */
+
 export default function DashboardClient({
-  activeAssignedRuns,
-  createdRuns,
-  projectCount,
-  completedAssignedRuns,
+  assignedTasks = [],
+  assignedRuns = [],
+  completedTasks = [],
+  completedRuns = [],
+  createdTasks = [],
+  createdRuns = [],
+  projectCount = 0,
 }: {
-  activeAssignedRuns: AssignedRun[];
-  createdRuns: CreatedRun[];
-  projectCount: number;
-  completedAssignedRuns: CompletedRun[];
+  assignedTasks?: Task[];
+  assignedRuns?: TestRun[];
+  completedTasks?: Task[];
+  completedRuns?: TestRun[];
+  createdTasks?: Task[];
+  createdRuns?: TestRun[];
+  projectCount?: number;
 }) {
   const router = useRouter();
 
   return (
     <Box p={3}>
+      {/* Header */}
       <Typography variant="h5" fontWeight={700}>
         Dashboard
       </Typography>
-      {/* Quick stats derived from loaded runs */}
+
       <Typography color="text.secondary" mb={3}>
-        Your current work and responsibilities
-      </Typography>
-      <Typography color="text.secondary" mb={3}>
-        Your current work and responsibilities
+        Your tasks and test executions across all projects
       </Typography>
 
       {/* QUICK STATS */}
       <Stack direction="row" spacing={2} mb={4}>
         <Chip label={`Projects: ${projectCount}`} />
-        <Chip label={`Assigned runs: ${activeAssignedRuns.length}`} />
-        <Chip label={`Completed runs: ${completedAssignedRuns.length}`} />
-        <Chip label={`Created runs: ${createdRuns.length}`} />
+        <Chip label={`Assigned tasks: ${assignedTasks.length}`} />
+        <Chip label={`Assigned runs: ${assignedRuns.length}`} />
       </Stack>
 
       {/* ASSIGNED TO ME */}
@@ -91,128 +79,151 @@ export default function DashboardClient({
         Assigned to Me
       </Typography>
 
-      {activeAssignedRuns.length === 0 ? (
+      {assignedTasks.length === 0 && assignedRuns.length === 0 ? (
         <Typography color="text.secondary" mb={3}>
-          No test runs assigned to you.
+          Nothing assigned to you right now 🎉
         </Typography>
       ) : (
         <Stack spacing={2} mb={4}>
-          {activeAssignedRuns.map((run) => (
-            <Card key={run.id}>
+          {assignedTasks.map((task) => (
+            <Card key={task.id}>
               <CardContent>
                 <Typography fontWeight={600}>
-                  {run.name}
+                  🧩 {task.title}
                 </Typography>
                 <Typography color="text.secondary">
-                  Project: {run.project.name}
+                  Project: {task.project.name}
                 </Typography>
-
-                <Button
-                  sx={{ mt: 1 }}
-                  variant="contained"
-                  onClick={() =>
-                    router.push(`/test-runs/${run.id}`)
-                  }
-                >
-                  View Execution
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </Stack>
-      )}
-      <Divider sx={{ my: 4 }} />
-{/* Completed by me section  */}
-      <Typography variant="h6" gutterBottom>
-        Completed Test Runs
-      </Typography>
-
-      {completedAssignedRuns.length === 0 ? (
-        <Typography color="text.secondary" mb={3}>
-          You haven’t completed any test runs yet.
-        </Typography>
-      ) : (
-        <Stack spacing={2} mb={4}>
-          {completedAssignedRuns.map((run) => (
-            <Card key={run.id}>
-              <CardContent>
-                <Typography fontWeight={600}>
-                  {run.name}
-                </Typography>
-
-                <Typography color="text.secondary">
-                  Project: {run.project.name}
-                </Typography>
-
-                <Chip
-                  sx={{ mt: 1 }}
-                  color="success"
-                  label="Completed"
-                />
-
                 <Button
                   sx={{ mt: 2 }}
                   variant="outlined"
                   onClick={() =>
-                    router.push(`/test-runs/${run.id}`)
+                    router.push(`/tasks/${task.id}`)
                   }
                 >
-                  View Execution Summary
+                  View Task
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+
+          {assignedRuns.map((run) => (
+            <Card key={run.id}>
+              <CardContent>
+                <Typography fontWeight={600}>
+                  🧪 {run.name}
+                </Typography>
+                <Typography color="text.secondary">
+                  Project: {run.project.name}
+                </Typography>
+                <Button
+                  sx={{ mt: 2 }}
+                  variant="contained"
+                  onClick={() => router.push(`/test-runs/${run.id}`)}
+                >
+                  Open Execution
                 </Button>
               </CardContent>
             </Card>
           ))}
         </Stack>
       )}
-covered-branch
-
 
       <Divider sx={{ my: 4 }} />
 
-      {/* CREATED BY ME */}
+      {/* COMPLETED */}
       <Typography variant="h6" gutterBottom>
-        Test Runs I Created
+        Completed by Me
       </Typography>
 
-      {createdRuns.length === 0 ? (
+      {completedTasks.length === 0 && completedRuns.length === 0 ? (
         <Typography color="text.secondary">
-          You haven’t created any test runs yet.
+          No completed work yet.
         </Typography>
       ) : (
         <Stack spacing={2}>
-          {createdRuns.map((run) => (
+          {completedTasks.map((task) => (
+            <Card key={task.id}>
+              <CardContent>
+                <Typography fontWeight={600}>
+                  ✅ {task.title}
+                </Typography>
+              </CardContent>
+            </Card>
+          ))}
+
+          {completedRuns.map((run) => (
             <Card key={run.id}>
               <CardContent>
                 <Typography fontWeight={600}>
-                  {run.name}
+                  🧪 {run.name}
+                </Typography>
+                <Button
+                  sx={{ mt: 2 }}
+                  variant="outlined"
+                  onClick={() => router.push(`/test-runs/${run.id}`)}
+                >
+                  View Summary
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </Stack>
+      )}
+      <Divider sx={{ my: 4 }} />
+
+      {/* ================= CREATED BY ME ================= */}
+      <Typography variant="h6" gutterBottom>
+        Created by Me
+      </Typography>
+
+      {createdTasks.length === 0 && createdRuns.length === 0 ? (
+        <Typography color="text.secondary">
+          You haven’t created any tasks or test runs yet.
+        </Typography>
+      ) : (
+        <Stack spacing={2}>
+          {createdTasks.map((task) => (
+            <Card key={`created-task-${task.id}`}>
+              <CardContent>
+                <Typography fontWeight={600}>
+                  🧩 {task.title}
+                </Typography>
+
+                <Typography color="text.secondary">
+                  Project: {task.project.name}
+                </Typography>
+
+                <Button
+                  sx={{ mt: 2 }}
+                  variant="outlined"
+                  onClick={() =>
+                    router.push(
+                      `/tasks/${task.id}`
+                    )
+                  }
+                >
+                  Manage Task
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+
+          {createdRuns.map((run) => (
+            <Card key={`created-run-${run.id}`}>
+              <CardContent>
+                <Typography fontWeight={600}>
+                  🧪 {run.name}
                 </Typography>
 
                 <Typography color="text.secondary">
                   Project: {run.project.name}
                 </Typography>
 
-                <Stack direction="row" spacing={1} mt={1}>
-                  <Chip
-                    label={
-                      run.endedAt ? "Completed" : "Active"
-                    }
-                    color={run.endedAt ? "success" : "warning"}
-                  />
-                  <Chip
-                    label={
-                      run.assignedTo
-                        ? `Assigned to ${run.assignedTo.name}`
-                        : "Unassigned"
-                    }
-                  />
-                </Stack>
-
                 <Button
                   sx={{ mt: 2 }}
                   variant="outlined"
-                  onClick={() =>
-                    router.push(`/test-runs/${run.id}`)
-                  }
+                  onClick={() => router.push(`/test-runs/${run.id}`)}
                 >
                   View Execution
                 </Button>
