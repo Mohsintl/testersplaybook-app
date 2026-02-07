@@ -30,16 +30,24 @@ export async function POST(
     // Fetch run (include status)
     const testRun = await prisma.testRun.findUnique({
         where: { id: testRunId },
-        select: { id: true, projectId: true, endedAt: true, status: true },
+        select: {
+            id: true,
+            projectId: true,
+            endedAt: true,
+            status: true,
+            assignedToId: true,
+        },
     });
 
     if (!testRun) {
         return NextResponse.json({ error: "Test run not found" }, { status: 404 });
     }
 
-    // Authorization: ensure user is a project member
+    // Authorization: owner or assigned contributor
     const role = await getProjectMemberRole(testRun.projectId, session.user.id);
-    if (!role) {
+    const isOwner = role === "OWNER";
+    const isAssignee = testRun.assignedToId === session.user.id;
+    if (!role || (!isOwner && !isAssignee)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
