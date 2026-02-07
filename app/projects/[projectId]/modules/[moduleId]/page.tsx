@@ -1,4 +1,5 @@
 import { getAuthSession } from "@/lib/auth";
+import { getProjectMemberRole } from "@/lib/project-access";
 /*
   Module Page (Server)
   --------------------
@@ -51,6 +52,9 @@ export default async function ModulePage({
     return <p style={{ padding: "24px" }}>Module not found</p>;
   }
 
+  const myRole = await getProjectMemberRole(module.projectId, session.user.id);
+  const canCreateTestCase = myRole === "OWNER";
+
   const testCases = await prisma.testCase.findMany({
     where: { moduleId },
   });
@@ -83,7 +87,9 @@ export default async function ModulePage({
       }
       rightContent={
         <div>
-          <CreateTestCaseForm projectId={projectId} moduleId={moduleId} />
+          {canCreateTestCase && (
+            <CreateTestCaseForm projectId={projectId} moduleId={moduleId} />
+          )}
           <div className="flex gap-4 mt-4">
             <ModuleAIReview
               moduleId={moduleId}
@@ -91,8 +97,12 @@ export default async function ModulePage({
                 id: tc.id,
                 title: tc.title,
               }))}
+              canReview={myRole === "OWNER"}
             />
-            <ModuleAIGenerate moduleId={module.id} />
+            <ModuleAIGenerate
+              moduleId={module.id}
+              canAdd={myRole === "OWNER"}
+            />
           </div>
         </div>
       }
@@ -101,6 +111,7 @@ export default async function ModulePage({
           projectId={module.project.id}
           moduleId={module.id}
           existingBehaviors={behaviors}
+          canEdit={myRole === "OWNER"}
         />
       }
     />

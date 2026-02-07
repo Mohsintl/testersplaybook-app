@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { getProjectMemberRole } from "@/lib/project-access";
 
 export async function POST(
   req: Request,
@@ -32,6 +33,11 @@ export async function POST(
 
   if (!module) {
     return NextResponse.json({ error: "Module not found" }, { status: 404 });
+  }
+
+  const role = await getProjectMemberRole(module.projectId, session.user.id);
+  if (role !== "OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const behavior = await prisma.projectBehavior.create({
@@ -73,6 +79,20 @@ export async function DELETE(
 
   if (!behavior || behavior.moduleId !== moduleId) {
     return NextResponse.json({ error: "Behavior not found" }, { status: 404 });
+  }
+
+  const module = await prisma.module.findUnique({
+    where: { id: moduleId },
+    select: { projectId: true },
+  });
+
+  if (!module) {
+    return NextResponse.json({ error: "Module not found" }, { status: 404 });
+  }
+
+  const role = await getProjectMemberRole(module.projectId, session.user.id);
+  if (role !== "OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   await prisma.projectBehavior.delete({

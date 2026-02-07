@@ -10,6 +10,7 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import TestCaseClient from "./TestCaseClient";
 import ProjectLayout from "@/app/projects/components/ProjectLayout";
+import { getProjectMemberRole } from "@/lib/project-access";
 
 export default async function TestCaseDetailPage({
   params,
@@ -54,6 +55,8 @@ export default async function TestCaseDetailPage({
     return <p style={{ padding: 24 }}>Test case not found</p>;
   }
 
+  const myRole = await getProjectMemberRole(projectId, session.user.id);
+
   return (
     <ProjectLayout
       title={testCase.title}
@@ -67,7 +70,9 @@ export default async function TestCaseDetailPage({
           // tags: testCase.tags,
           projectName: testCase.project.name,
           moduleName: testCase.module?.name ?? "",
-        }} />} description={""} rightContent={undefined}    />
+        }}
+        canEdit={myRole === "OWNER"}
+      />} description={""} rightContent={undefined}    />
 
   );
 }

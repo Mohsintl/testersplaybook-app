@@ -21,9 +21,11 @@ interface Module {
 export default function ModuleList({
   modules,
   projectId,
+  canDelete,
 }: {
   modules: Module[];
   projectId: string;
+  canDelete: boolean;
 }) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -100,19 +102,21 @@ export default function ModuleList({
                 </Typography>
               )}
             </a>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={() => openDeleteModal(module)}
-              disabled={deleting === module.id}
-            >
-              {deleting === module.id ? "Deleting..." : "Delete"}
-            </Button>
+            {canDelete && (
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => openDeleteModal(module)}
+                disabled={deleting === module.id}
+              >
+                {deleting === module.id ? "Deleting..." : "Delete"}
+              </Button>
+            )}
           </Stack>
         ))}
       </Stack>
 
-      {selectedModule && (
+      {canDelete && selectedModule && (
         <DeleteConfirmationModal
           open={modalOpen}
           title="Confirm Delete"

@@ -41,9 +41,11 @@ type ReviewResult = {
 export default function ModuleAIReview({
   moduleId,
   testCases = [], // ✅ SAFE DEFAULT
+  canReview,
 }: {
   moduleId: string;
   testCases?: TestCase[];
+  canReview: boolean;
 }) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ReviewResult | null>(null);
@@ -102,9 +104,11 @@ export default function ModuleAIReview({
 
   return (
     <div style={{ marginTop: 24 }}>
-      <button onClick={handleReview} disabled={loading}>
-        {loading ? "Reviewing…" : "🤖 Review Module"}
-      </button>
+      {canReview && (
+        <button onClick={handleReview} disabled={loading}>
+          {loading ? "Reviewing…" : "🤖 Review Module"}
+        </button>
+      )}
 
       {result && (
         <div style={{ marginTop: 20 }}>

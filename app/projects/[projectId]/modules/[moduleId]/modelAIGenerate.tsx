@@ -26,8 +26,10 @@ type GeneratedTestCase = {
 
 export default function ModuleAIGenerate({
   moduleId,
+  canAdd,
 }: {
   moduleId: string;
+  canAdd: boolean;
 }) {
   const router = useRouter();
 
@@ -135,7 +137,7 @@ export default function ModuleAIGenerate({
       </h3> */}
 
       {/* Generate Button */}
-      {generated.length === 0 && (
+      {generated.length === 0 && canAdd && (
         <button
           onClick={handleGenerate}
           disabled={loading}
@@ -163,14 +165,18 @@ export default function ModuleAIGenerate({
             borderRadius: "6px",
           }}
         >
-          <label style={{ display: "block", marginBottom: "6px" }}>
-            <input
-              type="checkbox"
-              checked={selected.includes(index)}
-              onChange={() => toggle(index)}
-            />{" "}
+          {canAdd ? (
+            <label style={{ display: "block", marginBottom: "6px" }}>
+              <input
+                type="checkbox"
+                checked={selected.includes(index)}
+                onChange={() => toggle(index)}
+              />{" "}
+              <strong>{tc.title}</strong>
+            </label>
+          ) : (
             <strong>{tc.title}</strong>
-          </label>
+          )}
 
           <ul>
             {tc.steps.map((step, i) => (
@@ -185,7 +191,7 @@ export default function ModuleAIGenerate({
       ))}
 
       {/* Add Selected Button */}
-      {generated.length > 0 && (
+      {generated.length > 0 && canAdd && (
         <button
           onClick={handleAddSelected}
           disabled={saving}

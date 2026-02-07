@@ -23,10 +23,12 @@ export default function ModuleBehaviorClient({
   projectId,
   moduleId,
   existingBehaviors,
+  canEdit,
 }: {
   projectId: string;
   moduleId: string;
   existingBehaviors: Behavior[];
+  canEdit: boolean;
 }) {
   const [behaviors, setBehaviors] = useState(existingBehaviors);
   const [userAction, setUserAction] = useState("");
@@ -126,63 +128,69 @@ export default function ModuleBehaviorClient({
           {behaviors.map((b) => (
             <li key={`${b.id}`} style={{ marginBottom: "8px" }}>
               👉 <strong>{b.userAction}</strong> → {b.systemResult}
-              <Button
-                onClick={() => openDeleteModal(b)}
-                style={{ marginLeft: "8px", color: "red" }}
-              >
-                ✕ Delete
-              </Button>
+              {canEdit && (
+                <Button
+                  onClick={() => openDeleteModal(b)}
+                  style={{ marginLeft: "8px", color: "red" }}
+                >
+                  ✕ Delete
+                </Button>
+              )}
             </li>
           ))}
         </ul>
       )}
 
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => setShowForm((prev) => !prev)}
-        style={{ marginBottom: "16px", backgroundColor: "#ADD8E6", color: "#000" }}
-      >
-        {showForm ? "Close Add Behavior Form" : "Add Module-Level Behaviors"}
-      </Button>
+      {canEdit && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setShowForm((prev) => !prev)}
+          style={{ marginBottom: "16px", backgroundColor: "#ADD8E6", color: "#000" }}
+        >
+          {showForm ? "Close Add Behavior Form" : "Add Module-Level Behaviors"}
+        </Button>
+      )}
 
-      <Collapse in={showForm} timeout="auto" unmountOnExit>
-        <Box mt={2}>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleAdd();
-            }}
-            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-          >
-            <TextField
-              label="User Action"
-              placeholder="User action (e.g. Clicks Save button)"
-              value={userAction}
-              onChange={(e) => setUserAction(e.target.value)}
-              fullWidth
-              variant="outlined"
-            />
+      {canEdit && (
+        <Collapse in={showForm} timeout="auto" unmountOnExit>
+          <Box mt={2}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAdd();
+              }}
+              style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+            >
+              <TextField
+                label="User Action"
+                placeholder="User action (e.g. Clicks Save button)"
+                value={userAction}
+                onChange={(e) => setUserAction(e.target.value)}
+                fullWidth
+                variant="outlined"
+              />
 
-            <TextField
-              label="System Result"
-              placeholder="System result (e.g. Shows success toast)"
-              value={systemResult}
-              onChange={(e) => setSystemResult(e.target.value)}
-              fullWidth
-              variant="outlined"
-            />
+              <TextField
+                label="System Result"
+                placeholder="System result (e.g. Shows success toast)"
+                value={systemResult}
+                onChange={(e) => setSystemResult(e.target.value)}
+                fullWidth
+                variant="outlined"
+              />
 
-            <Button type="submit" variant="contained" color="primary" disabled={loading}>
-              {loading ? "Saving…" : "➕ Add Module Behavior"}
-            </Button>
+              <Button type="submit" variant="contained" color="primary" disabled={loading}>
+                {loading ? "Saving…" : "➕ Add Module Behavior"}
+              </Button>
 
-            {error && <p style={{ color: "red" }}>{error}</p>}
-          </form>
-        </Box>
-      </Collapse>
+              {error && <p style={{ color: "red" }}>{error}</p>}
+            </form>
+          </Box>
+        </Collapse>
+      )}
 
-      {selectedBehavior && (
+      {canEdit && selectedBehavior && (
         <DeleteConfirmationModal
           open={modalOpen}
           title="Confirm Delete"

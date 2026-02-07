@@ -134,6 +134,7 @@ export default async function ProjectPage({
             <ProjectBehaviorClient
               projectId={project.id}
               existingBehaviors={behaviors}
+              canEdit={myRole === "OWNER"}
             />
 
             <UIReferences projectId={projectId} canEdit={myRole === "OWNER"} />
@@ -141,19 +142,32 @@ export default async function ProjectPage({
         }
         rightContent={
           <div>
-            <CreateModuleForm projectId={projectId} />
-            <ProjectTasksSection projectId={projectId} members={projectMembers} />
+            <CreateModuleForm
+              projectId={projectId}
+              canCreate={myRole === "OWNER"}
+            />
+            <ProjectTasksSection
+              projectId={projectId}
+              members={projectMembers}
+              canCreate={myRole === "OWNER"}
+            />
             <TaskList  tasks={tasks} />
             <TestRunsClient
               projectId={projectId}
               initialRuns={formattedTestRuns} // Use the formatted test runs
               members={projectMembers}
+              currentUserId={session.user.id}
+              currentUserRole={myRole ?? "CONTRIBUTOR"}
             />
             {myRole === "OWNER" && <InviteMember projectId={projectId} />}
           </div>
         }
         extraRightContent={
-          <ModuleList modules={project.modules} projectId={projectId} />
+          <ModuleList
+            modules={project.modules}
+            projectId={projectId}
+            canDelete={myRole === "OWNER"}
+          />
         }
       />
     );

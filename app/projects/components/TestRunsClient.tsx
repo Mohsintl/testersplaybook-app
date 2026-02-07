@@ -7,7 +7,7 @@
   to create a new run. Handles the empty-project case by showing a modal
   if there are no test cases.
 */
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@mui/material/Button";
 import Link from "next/link";
@@ -39,10 +39,14 @@ export default function TestRunsClient({
   projectId,
   initialRuns,
   members,
+  currentUserId,
+  currentUserRole,
 }: {
   projectId: string;
   initialRuns: TestRun[];
   members: ProjectMember[];
+  currentUserId: string;
+  currentUserRole: "OWNER" | "CONTRIBUTOR";
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -54,6 +58,7 @@ export default function TestRunsClient({
   const [setup, setSetup] = useState<any>({ environment: "", build: "", credentials: "", notes: "" });
   const [tempSetup, setTempSetup] = useState<any>(setup);
   const [setupModalOpen, setSetupModalOpen] = useState(false);
+  const canManageRuns = currentUserRole === "OWNER";
 
   // We manage `tempSetup` at the parent level and render the form inline
   // to avoid remounting issues that reset input state.
@@ -192,123 +197,139 @@ export default function TestRunsClient({
       <div style={{ marginTop: 12 }}>
         {/* <TestRunSetupForm onSave={(s) => setSetup(s)} /> */}
 
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <input
-            placeholder="Regression v1"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            style={{ padding: 8, flex: 1 }}
-          />
+        {canManageRuns && (
+          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <input
+              placeholder="Regression v1"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              style={{ padding: 8, flex: 1 }}
+            />
 
-          <Button
-            variant="contained"
-            onClick={openSetupModal}
-            disabled={loading}
-          >
-            {loading ? "Creating…" : "Start Run"}
-          </Button>
-        </div>
+            <Button
+              variant="contained"
+              onClick={openSetupModal}
+              disabled={loading}
+            >
+              {loading ? "Creating…" : "Start Run"}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Setup modal shown when user clicks Start Run */}
-      <SetupModal
-        open={setupModalOpen}
-        onClose={() => setSetupModalOpen(false)}
-        tempSetup={tempSetup}
-        setTempSetup={setTempSetup}
-        onConfirm={confirmCreateWithSetup}
-        loading={loading}
-      />
+      {canManageRuns && (
+        <SetupModal
+          open={setupModalOpen}
+          onClose={() => setSetupModalOpen(false)}
+          tempSetup={tempSetup}
+          setTempSetup={setTempSetup}
+          onConfirm={confirmCreateWithSetup}
+          loading={loading}
+        />
+      )}
 
       {/* List */}
       <ul style={{ marginTop: 16 }}>
-        {runs.map(run => (
-          <li key={run.id} style={{ marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Link href={`/test-runs/${run.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                🧪 {run.name}
-              </Link>
-              <span style={{ fontSize: 12, color: "gray" }}>
-                {run.status === "COMPLETED" ? "Completed" : "In Progress"}
-              </span>
-            </div>
-            <div>
-              <Select
-                size="small"
-                value={run.assignedToId ?? ""}
-                onChange={async (e) => {
-                  const newUserId = (e.target as HTMLSelectElement).value as string;
-                  const previousUserId = run.assignedToId ?? "";
+        {runs.map((run) => {
+          const canOpenRun = canManageRuns || run.assignedToId === currentUserId;
+          return (
+            <li key={run.id} style={{ marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {canOpenRun ? (
+                  <Link href={`/test-runs/${run.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                    🧪 {run.name}
+                  </Link>
+                ) : (
+                  <span style={{ color: "gray" }}>🧪 {run.name}</span>
+                )}
+                <span style={{ fontSize: 12, color: "gray" }}>
+                  {run.status === "COMPLETED" ? "Completed" : "In Progress"}
+                </span>
+              </div>
+              <div>
+                <Select
+                  size="small"
+                  value={run.assignedToId ?? ""}
+                  disabled={!canManageRuns}
+                  onChange={async (e) => {
+                    const newUserId = (e.target as HTMLSelectElement).value as string;
+                    const previousUserId = run.assignedToId ?? "";
 
-                  // Optimistic UI update so the selection appears immediately
-                  setRuns(prev =>
-                    prev.map(r => (r.id === run.id ? { ...r, assignedToId: newUserId || null } : r))
-                  );
+                    // Optimistic UI update so the selection appears immediately
+                    setRuns(prev =>
+                      prev.map(r => (r.id === run.id ? { ...r, assignedToId: newUserId || null } : r))
+                    );
 
-                  try {
-                    const res = await fetch(`/api/test-runs/${run.id}/assign`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ userId: newUserId }),
-                    });
+                    try {
+                      const res = await fetch(`/api/test-runs/${run.id}/assign`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userId: newUserId }),
+                      });
 
-                    if (!res.ok) {
-                      // Revert optimistic update on failure
+                      if (!res.ok) {
+                        // Revert optimistic update on failure
+                        setRuns(prev =>
+                          prev.map(r => (r.id === run.id ? { ...r, assignedToId: previousUserId || null } : r))
+                        );
+                        const err = await res.json().catch(() => ({ error: 'Request failed' }));
+                        alert(err?.error || 'Failed to assign user');
+                      }
+                      // If needed, we could call `router.refresh()` here to fully sync.
+                    } catch (err) {
                       setRuns(prev =>
                         prev.map(r => (r.id === run.id ? { ...r, assignedToId: previousUserId || null } : r))
                       );
-                      const err = await res.json().catch(() => ({ error: 'Request failed' }));
-                      alert(err?.error || 'Failed to assign user');
+                      alert('Network error while assigning user');
                     }
-                    // If needed, we could call `router.refresh()` here to fully sync.
-                  } catch (err) {
-                    setRuns(prev =>
-                      prev.map(r => (r.id === run.id ? { ...r, assignedToId: previousUserId || null } : r))
-                    );
-                    alert('Network error while assigning user');
-                  }
-                }}
-              >
-                <MenuItem value="">Unassigned</MenuItem>
-                {members.map((m) => (
-                  <MenuItem key={m.user.id} value={m.user.id}>
-                    {m.user.name || m.user.email }
-                    {m.role === "OWNER" ? " (Owner)" : ""}
-                  </MenuItem>
-                ))}
-              </Select>
+                  }}
+                >
+                  <MenuItem value="">Unassigned</MenuItem>
+                  {members.map((m) => (
+                    <MenuItem key={m.user.id} value={m.user.id}>
+                      {m.user.name || m.user.email }
+                      {m.role === "OWNER" ? " (Owner)" : ""}
+                    </MenuItem>
+                  ))}
+                </Select>
 
-            </div>
+              </div>
 
-            <Button
-              variant="outlined"
-              color="error"
-              size="small"
-              onClick={() => {
-                setRunToDelete(run);
-                setDeleteModalOpen(true);
-              }}
-            >
-              Delete
-            </Button>
-          </li>
-        ))}
+              {canManageRuns && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  onClick={() => {
+                    setRunToDelete(run);
+                    setDeleteModalOpen(true);
+                  }}
+                >
+                  Delete
+                </Button>
+              )}
+            </li>
+          );
+        })}
       </ul>
 
 
-      <DeleteConfirmationModal
-        open={deleteModalOpen}
-        onClose={() => {
-          setDeleteModalOpen(false);
-          setRunToDelete(null);
-        }}
-        onConfirm={() => {
-          handleDelete();
-          setDeleteModalOpen(false);
-        }}
-        title="Delete Test Run"
-        message={`Are you sure you want to delete the test run "${runToDelete?.name}"? This action cannot be undone.`}
-      />
+      {canManageRuns && (
+        <DeleteConfirmationModal
+          open={deleteModalOpen}
+          onClose={() => {
+            setDeleteModalOpen(false);
+            setRunToDelete(null);
+          }}
+          onConfirm={() => {
+            handleDelete();
+            setDeleteModalOpen(false);
+          }}
+          title="Delete Test Run"
+          message={`Are you sure you want to delete the test run "${runToDelete?.name}"? This action cannot be undone.`}
+        />
+      )}
 
       <Dialog open={noTestcasesOpen} onClose={() => setNoTestcasesOpen(false)}>
         <DialogTitle>Cannot create test run</DialogTitle>

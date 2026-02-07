@@ -31,9 +31,10 @@ type Props = {
     projectName: string;
     moduleName: string;
   };
+  canEdit: boolean;
 };
 
-export default function TestCaseClient({ testCase }: Props) {
+export default function TestCaseClient({ testCase, canEdit }: Props) {
   const form = useForm({
     defaultValues: {
       title: testCase.title,
@@ -181,12 +182,16 @@ export default function TestCaseClient({ testCase }: Props) {
 
           {/* ACTIONS */}
           <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
-            <Button variant="contained" onClick={() => setEditMode(true)}>
-              ✏️ Edit
-            </Button>
-            <Button variant="contained" color="error" onClick={handleDelete}>
-              🗑 Delete
-            </Button>
+            {canEdit && (
+              <Button variant="contained" onClick={() => setEditMode(true)}>
+                ✏️ Edit
+              </Button>
+            )}
+            {canEdit && (
+              <Button variant="contained" color="error" onClick={handleDelete}>
+                🗑 Delete
+              </Button>
+            )}
             <Button
               variant="contained"
               color="primary"
@@ -206,6 +211,7 @@ export default function TestCaseClient({ testCase }: Props) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               fullWidth
+              disabled={!canEdit}
             />
 
             <TextField
@@ -216,6 +222,7 @@ export default function TestCaseClient({ testCase }: Props) {
               multiline
               rows={6}
               fullWidth
+              disabled={!canEdit}
             />
 
             <TextField
@@ -226,17 +233,20 @@ export default function TestCaseClient({ testCase }: Props) {
               multiline
               rows={3}
               fullWidth
+              disabled={!canEdit}
             />
 
             <Stack direction="row" spacing={2}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={loading}
-              >
-                💾 Save
-              </Button>
+              {canEdit && (
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  disabled={loading}
+                >
+                  💾 Save
+                </Button>
+              )}
               <Button
                 variant="outlined"
                 onClick={() => setEditMode(false)}
@@ -274,20 +284,22 @@ export default function TestCaseClient({ testCase }: Props) {
             <b>Expected:</b> {aiResult.improved_expected}
           </p>
 
-          <Button
-            variant="contained"
-            color="success"
-            onClick={async () => {
-              await fetch(`/api/testcases/${testCase.id}/apply-ai`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(aiResult),
-              });
-              window.location.reload();
-            }}
-          >
-            ✅ Apply AI Changes
-          </Button>
+          {canEdit && (
+            <Button
+              variant="contained"
+              color="success"
+              onClick={async () => {
+                await fetch(`/api/testcases/${testCase.id}/apply-ai`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(aiResult),
+                });
+                window.location.reload();
+              }}
+            >
+              ✅ Apply AI Changes
+            </Button>
+          )}
         </div>
       )}
 

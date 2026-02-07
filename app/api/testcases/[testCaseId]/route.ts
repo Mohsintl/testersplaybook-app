@@ -5,6 +5,7 @@
 import { NextResponse } from "next/server";
 import { getAuthSession } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { getProjectMemberRole } from "@/lib/project-access";
 
 /* =========================
    UPDATE TEST CASE
@@ -25,6 +26,20 @@ export async function PATCH(
       { error: "Test case ID required" },
       { status: 400 }
     );
+  }
+
+  const existing = await prisma.testCase.findUnique({
+    where: { id: testCaseId },
+    select: { id: true, projectId: true },
+  });
+
+  if (!existing) {
+    return NextResponse.json({ error: "Test case not found" }, { status: 404 });
+  }
+
+  const role = await getProjectMemberRole(existing.projectId, session.user.id);
+  if (role !== "OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { title, steps, expected } = await req.json();
@@ -75,6 +90,20 @@ export async function DELETE(
       { error: "Test case ID required" },
       { status: 400 }
     );
+  }
+
+  const existing = await prisma.testCase.findUnique({
+    where: { id: testCaseId },
+    select: { id: true, projectId: true },
+  });
+
+  if (!existing) {
+    return NextResponse.json({ error: "Test case not found" }, { status: 404 });
+  }
+
+  const role = await getProjectMemberRole(existing.projectId, session.user.id);
+  if (role !== "OWNER") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   await prisma.testCase.delete({

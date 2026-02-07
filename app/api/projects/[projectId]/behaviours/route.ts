@@ -14,11 +14,15 @@ export async function GET(
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  
+  const { projectId } = await params;
+  const role = await getProjectMemberRole(projectId, session.user.id);
+  if (!role) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const behaviors = await prisma.projectBehavior.findMany({
     where: { 
-      projectId: params.projectId ,
+      projectId,
        scope: "PROJECT" ,
       },
     orderBy: { createdAt: "asc" },

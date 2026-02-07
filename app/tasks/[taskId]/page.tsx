@@ -56,6 +56,8 @@ export default async function TaskPage({
 
 
   const myRole = await getProjectMemberRole(task.project.id, session.user.id);
+  const canEditStatus =
+    myRole === "OWNER" || task.assignedTo?.id === session.user.id;
 
   return (
     <TaskExecutionClient
@@ -73,7 +75,7 @@ export default async function TaskPage({
           createdAt: c.createdAt.toISOString(),
         })),
       }}
-      editable={myRole === "OWNER"}
+      editable={canEditStatus}
     />
   );
 }

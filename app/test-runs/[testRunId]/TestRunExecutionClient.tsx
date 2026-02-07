@@ -68,6 +68,7 @@ type ExecutionSummary = {
 export default function TestRunExecutionClient({
   testRun,
   canEdit,
+  currentUserId,
 }: {
 
     testRun: {
@@ -90,6 +91,7 @@ export default function TestRunExecutionClient({
       } | null;
   };
   canEdit?: boolean;
+  currentUserId: string;
 }) {
   /* ---------------- STATE ---------------- */
   const [modules, setModules] = useState<ModuleExecution[]>(testRun.modules);
@@ -97,6 +99,9 @@ export default function TestRunExecutionClient({
   const [endedAt, setEndedAt] = useState<string | null>(testRun.endedAt);
 
   const isLocked = testRun.isLocked ?? Boolean(endedAt);
+  const isAssignee = testRun.assignedToId === currentUserId;
+  const canStart = isAssignee;
+  const canFinish = Boolean(canEdit) || isAssignee;
 
   const router = useRouter();
   const [finishError, setFinishError] = useState<string | null>(null);
@@ -163,7 +168,7 @@ export default function TestRunExecutionClient({
 
     updateLocalResult(resultId, { status });
 
-    await fetch(`/api/test-results/${resultId}`, {
+    await fetch(`/api/test-results/${resultId}` , {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -247,18 +252,20 @@ export default function TestRunExecutionClient({
           </Typography>
           <Stack direction="row" spacing={2} mt={2}>
               {testRun.status === "STARTED" && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={async () => {
-                    await fetch(`/api/test-runs/${testRun.id}/start`, {
-                      method: "POST",
-                    });
-                    router.refresh();
-                  }}
-                >
-                  ▶ Start Execution
-                </Button>
+                canStart && (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={async () => {
+                      await fetch(`/api/test-runs/${testRun.id}/start`, {
+                        method: "POST",
+                      });
+                      router.refresh();
+                    }}
+                  >
+                    ▶ Start Execution
+                  </Button>
+                )
               )}
 
             {!isLocked && testRun.status === "IN_PROGRESS" && (
@@ -267,14 +274,16 @@ export default function TestRunExecutionClient({
                   <Alert severity="error">{finishError}</Alert>
                 )}
 
-                <Button
-                  variant="contained"
-                  color="primary"
-                  disabled={finishing || summary.untested > 0}
-                  onClick={finishExecution}
-                >
-                  {finishing ? "Finishing…" : "✅ Finish Execution"}
-                </Button>
+                {canFinish && (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    disabled={finishing || summary.untested > 0}
+                    onClick={finishExecution}
+                  >
+                    {finishing ? "Finishing…" : "✅ Finish Execution"}
+                  </Button>
+                )}
               </>
             )}
           </Stack>

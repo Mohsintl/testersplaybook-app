@@ -136,6 +136,7 @@ export default async function TestRunPage({
         setup: testRun.setup ?? null,
       }}
       canEdit={canEdit}
+      currentUserId={session.user.id}
     />
       }
       rightContent={null}
