@@ -2,17 +2,17 @@ generator client {
   provider = "prisma-client-js"
 }
 
-/*
-  Prisma Schema Notes
-  -------------------
-  - Enum values for Postgres-backed enums must be added carefully: Postgres
-    requires enum value additions to be committed before they are referenced
-    in subsequent migrations. When adding new enum labels (e.g., UNTESTED),
-    create a migration that performs only the ALTER TYPE ... ADD VALUE
-    statement and apply it before creating rows that use the new label.
-  - Keep this note near the top of the schema to remind contributors about
-    safe enum migration practices.
-*/
+/**
+ * Prisma Schema Notes
+ * -------------------
+ * - Enum values for Postgres-backed enums must be added carefully: Postgres
+ * requires enum value additions to be committed before they are referenced
+ * in subsequent migrations. When adding new enum labels (e.g., UNTESTED),
+ * create a migration that performs only the ALTER TYPE ... ADD VALUE
+ * statement and apply it before creating rows that use the new label.
+ * - Keep this note near the top of the schema to remind contributors about
+ * safe enum migration practices.
+ */
 
 datasource db {
   provider = "postgresql"
@@ -73,7 +73,6 @@ enum TaskStatus {
   DONE
 }
 
-
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -95,7 +94,7 @@ model User {
   assignedTestRuns TestRun[]       @relation("AssignedRuns")
   assignedTasks    Task[]          @relation("AssignedTasks")
   createdTasks     Task[]          @relation("CreatedTasks")
-
+  taskComments     TaskComment[]   @relation("TaskCommentAuthor")
 
   createdBugs        Bug[]        @relation("BugCreator")
   createdInvitations Invitation[] @relation("InvitationCreator")
@@ -112,12 +111,12 @@ model Project {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  owner     User              @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members   ProjectMember[]
-  modules   Module[]
-  testCases TestCase[]
-  testRuns  TestRun[]
-  behaviors ProjectBehavior[]
+  owner       User                 @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     ProjectMember[]
+  modules     Module[]
+  testCases   TestCase[]
+  testRuns    TestRun[]
+  behaviors   ProjectBehavior[]
   productSpec ProductSpec?
   uiRefs      ProjectUIReference[]
   tasks       Task[]
@@ -350,25 +349,19 @@ model ProjectBehavior {
   @@index([moduleId])
 }
 
-
-
-
 model ProductSpec {
-  id          String   @id @default(cuid())
-  projectId   String   @unique
+  id        String @id @default(cuid())
+  projectId String @unique
 
-  content     Json?
+  content Json?
 
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@map("product_specs")
 }
-
-
-
 
 enum UIReferenceSource {
   FIGMA
@@ -377,15 +370,15 @@ enum UIReferenceSource {
 }
 
 model ProjectUIReference {
-  id          String   @id @default(cuid())
-  projectId   String
+  id        String @id @default(cuid())
+  projectId String
 
   title       String
   imageUrl    String
   source      UIReferenceSource @default(SCREENSHOT)
   description String?
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
@@ -393,30 +386,48 @@ model ProjectUIReference {
   @@map("project_ui_references")
 }
 
-
 model Task {
-  id           String     @id @default(cuid())
-  projectId    String
+  id        String @id @default(cuid())
+  projectId String
 
-  title        String
-  description  String?
+  title       String
+  description String?
 
-  status       TaskStatus @default(TODO)
+  status TaskStatus @default(TODO)
 
   assignedToId String?
   createdById  String
 
-  dueDate      DateTime?
+  dueDate DateTime?
 
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignedTo  User?   @relation("AssignedTasks", fields: [assignedToId], references: [id])
-  createdBy   User    @relation("CreatedTasks", fields: [createdById], references: [id])
+  project    Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedTo User?         @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  createdBy  User          @relation("CreatedTasks", fields: [createdById], references: [id])
+  comment    TaskComment[]
 
   @@index([projectId])
   @@index([assignedToId])
   @@map("tasks")
+}
+
+model TaskComment {
+  id       String @id @default(cuid())
+  taskId   String
+  authorId String
+
+  content   String
+  createdAt DateTime @default(now())
+
+  // Relations
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  author User @relation("TaskCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([authorId])
+  @@map("task_comments")
 }

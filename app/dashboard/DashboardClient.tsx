@@ -98,7 +98,7 @@ export default function DashboardClient({
                   sx={{ mt: 2 }}
                   variant="outlined"
                   onClick={() =>
-                    router.push(`/projects/${task.project.id}?tab=tasks`)
+                    router.push(`/tasks/${task.id}`)
                   }
                 >
                   View Task

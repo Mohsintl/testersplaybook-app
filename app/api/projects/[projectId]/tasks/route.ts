@@ -64,7 +64,7 @@ export async function GET(
           name: true,
         },
       },
-      creator: {
+      createdBy: {
         select: {
           id: true,
           name: true,
