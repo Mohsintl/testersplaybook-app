@@ -191,6 +191,11 @@ export default function TestRunsClient({
       <h2 style={{ fontSize: 18, fontWeight: 600 }}>
         Test Runs
       </h2>
+      {!canManageRuns && (
+        <p style={{ color: "gray", marginTop: 4 }}>
+          You can start and finish runs assigned to you. Other runs are read-only.
+        </p>
+      )}
 
       {/* Create */}
       {/* Create */}
@@ -246,6 +251,11 @@ export default function TestRunsClient({
                 <span style={{ fontSize: 12, color: "gray" }}>
                   {run.status === "COMPLETED" ? "Completed" : "In Progress"}
                 </span>
+                {!canManageRuns && !canOpenRun && (
+                  <span style={{ fontSize: 12, color: "#a0a0a0" }}>
+                    Not assigned to you
+                  </span>
+                )}
               </div>
               <div>
                 <Select
