@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { getAuthSession } from "@/lib/auth";
 import DashboardClient from "./DashboardClient";
+import ProjectLayout from "@/app/projects/components/ProjectLayout";
 
 export const runtime = "nodejs";
 
@@ -120,14 +121,21 @@ export default async function DashboardPage() {
 
   /* ---------------- RENDER ---------------- */
   return (
-    <DashboardClient
-      assignedTasks={assignedTasks ?? []}
-      completedTasks={completedTasks ?? []}
-      createdTasks={createdTasks ?? []}
-      assignedRuns={assignedRuns ?? []}
-      completedRuns={completedRuns ?? []}
-      createdRuns={createdRuns ?? []}
-      projectCount={projects?.length ?? 0}
+    <ProjectLayout
+      title=""
+      description=""
+      leftContent={
+        <DashboardClient
+          assignedTasks={assignedTasks ?? []}
+          completedTasks={completedTasks ?? []}
+          createdTasks={createdTasks ?? []}
+          assignedRuns={assignedRuns ?? []}
+          completedRuns={completedRuns ?? []}
+          createdRuns={createdRuns ?? []}
+          projectCount={projects?.length ?? 0}
+        />
+      }
+      rightContent={null}
     />
   );
 }

@@ -11,6 +11,7 @@ import Button from "@mui/material/Button";
 */
 import Typography from "@mui/material/Typography";
 import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
+import CreateModuleForm from "./CreateModuleForm";
 
 interface Module {
   id: string;
@@ -22,10 +23,14 @@ export default function ModuleList({
   modules,
   projectId,
   canDelete,
+  currentUserRole,
+  canCreate,
 }: {
   modules: Module[];
   projectId: string;
   canDelete: boolean;
+  currentUserRole: "OWNER" | "CONTRIBUTOR";
+  canCreate: boolean;
 }) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -71,12 +76,25 @@ export default function ModuleList({
     }
   }
 
-  if (modules.length === 0) {
-    return <Typography sx={{ mt: 2 }}>No modules yet.</Typography>;
-  }
-
   return (
     <>
+      <Stack spacing={1} sx={{ mt: 2 }}>
+        <Typography fontSize={18} fontWeight={600}>
+          Modules / Features
+        </Typography>
+        {canCreate && (
+          <CreateModuleForm projectId={projectId} canCreate={canCreate} />
+        )}
+      </Stack>
+
+      {modules.length === 0 && (
+        <Typography sx={{ mt: 2 }}>
+          {currentUserRole === "OWNER"
+            ? "No modules yet. Create a module to organize test cases."
+            : "No modules yet. Ask an owner to create modules for this project."}
+        </Typography>
+      )}
+
       <Stack spacing={2} sx={{ mt: 2 }}>
         {modules.map((module) => (
           <Stack

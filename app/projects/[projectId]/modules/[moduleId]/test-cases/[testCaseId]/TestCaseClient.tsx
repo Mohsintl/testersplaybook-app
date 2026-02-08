@@ -201,6 +201,11 @@ export default function TestCaseClient({ testCase, canEdit }: Props) {
               🤖 Improve with AI
             </Button>
           </div>
+          {!canEdit && (
+            <p style={{ color: "#666", marginTop: 8 }}>
+              Editing is limited to owners.
+            </p>
+          )}
         </>
       ) : (
         <form onSubmit={(e) => { e.preventDefault(); handleSave({ title, steps, expected }); }}>

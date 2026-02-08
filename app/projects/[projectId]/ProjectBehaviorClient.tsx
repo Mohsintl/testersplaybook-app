@@ -123,6 +123,11 @@ export default function ProjectBehaviorClient({
       <Typography variant="body2" color="textSecondary" gutterBottom>
         Describe how the application behaves when a user performs an action.
       </Typography>
+      {!canEdit && (
+        <Typography variant="body2" color="textSecondary" gutterBottom>
+          Project behaviors are managed by owners.
+        </Typography>
+      )}
 
       {/* Existing behaviors */}
       {behaviors.length > 0 && (

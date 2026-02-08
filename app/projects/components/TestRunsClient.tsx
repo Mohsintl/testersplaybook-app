@@ -59,6 +59,7 @@ export default function TestRunsClient({
   const [tempSetup, setTempSetup] = useState<any>(setup);
   const [setupModalOpen, setSetupModalOpen] = useState(false);
   const canManageRuns = currentUserRole === "OWNER";
+  const assignedCount = runs.filter((run) => run.assignedToId === currentUserId).length;
 
   // We manage `tempSetup` at the parent level and render the form inline
   // to avoid remounting issues that reset input state.
@@ -191,6 +192,11 @@ export default function TestRunsClient({
       <h2 style={{ fontSize: 18, fontWeight: 600 }}>
         Test Runs
       </h2>
+      {!canManageRuns && (
+        <p style={{ color: "gray", marginTop: 4 }}>
+          You can start and finish runs assigned to you. Other runs are read-only.
+        </p>
+      )}
 
       {/* Create */}
       {/* Create */}
@@ -246,6 +252,11 @@ export default function TestRunsClient({
                 <span style={{ fontSize: 12, color: "gray" }}>
                   {run.status === "COMPLETED" ? "Completed" : "In Progress"}
                 </span>
+                {!canManageRuns && !canOpenRun && (
+                  <span style={{ fontSize: 12, color: "#a0a0a0" }}>
+                    Not assigned to you
+                  </span>
+                )}
               </div>
               <div>
                 <Select
@@ -313,6 +324,11 @@ export default function TestRunsClient({
           );
         })}
       </ul>
+      {!canManageRuns && assignedCount === 0 && (
+        <p style={{ color: "gray", marginTop: 8 }}>
+          No test runs assigned to you yet.
+        </p>
+      )}
 
 
       {canManageRuns && (

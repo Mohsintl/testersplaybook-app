@@ -219,6 +219,14 @@ export default function UIReferences({
           </Stack>
         )}
 
+        {refs.length === 0 && (
+          <Typography color="text.secondary" mt={2}>
+            {canEdit
+              ? "No UI references yet. Add screenshots or links to guide testing."
+              : "No UI references yet. Ask an owner to add screenshots or design links."}
+          </Typography>
+        )}
+
         <Grid container spacing={2} mt={2}>
           {refs.map((ref) => (
             <Grid item xs={12} md={6} key={ref.id}>

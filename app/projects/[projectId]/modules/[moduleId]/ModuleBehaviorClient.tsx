@@ -122,6 +122,11 @@ export default function ModuleBehaviorClient({
       <p style={{ color: "#666", marginBottom: "12px" }}>
         Describe how this module behaves when users interact with it.
       </p>
+      {!canEdit && (
+        <p style={{ color: "#666", marginBottom: "12px" }}>
+          Module behaviors are managed by owners.
+        </p>
+      )}
 
       {behaviors.length > 0 && (
         <ul style={{ marginBottom: "16px" }}>
