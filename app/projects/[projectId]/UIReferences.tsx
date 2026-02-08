@@ -31,10 +31,12 @@ type UIReference = {
 };
 
 export default function UIReferences({
-  projectId,
+  scopeId,
+  scopeType = "project",
   canEdit,
 }: {
-  projectId: string;
+  scopeId: string;
+  scopeType?: "project" | "module";
   canEdit: boolean;
 }) {
   const [refs, setRefs] = useState<UIReference[]>([]);
@@ -70,7 +72,7 @@ export default function UIReferences({
 
     try {
       const res = await fetch(
-        `/api/projects/${projectId}/ui-references/${selectedRef.id}`,
+        `/api/${scopeType === "project" ? "projects" : "modules"}/${scopeId}/ui-references/${selectedRef.id}`,
         { method: "DELETE" },
       );
 
@@ -92,10 +94,10 @@ export default function UIReferences({
   }
 
   useEffect(() => {
-    fetch(`/api/projects/${projectId}/ui-references`)
+    fetch(`/api/${scopeType === "project" ? "projects" : "modules"}/${scopeId}/ui-references`)
       .then((r) => r.json())
       .then((json) => setRefs(json.data || []));
-  }, [projectId]);
+  }, [scopeId, scopeType]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -108,7 +110,7 @@ export default function UIReferences({
   }
 
   async function addReference() {
-    const res = await fetch(`/api/projects/${projectId}/ui-references`, {
+    const res = await fetch(`/api/${scopeType === "project" ? "projects" : "modules"}/${scopeId}/ui-references`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),

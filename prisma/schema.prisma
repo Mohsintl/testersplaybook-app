@@ -154,6 +154,8 @@ model Module {
   project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
   testCases TestCase[]
   behaviors ProjectBehavior[]
+  productSpec ModuleSpec?
+  uiRefs      ModuleUIReference[]
 
   @@map("modules")
 }
@@ -363,6 +365,20 @@ model ProductSpec {
   @@map("product_specs")
 }
 
+model ModuleSpec {
+  id       String @id @default(cuid())
+  moduleId String @unique
+
+  content Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@map("module_specs")
+}
+
 enum UIReferenceSource {
   FIGMA
   SCREENSHOT
@@ -384,6 +400,23 @@ model ProjectUIReference {
 
   @@index([projectId])
   @@map("project_ui_references")
+}
+
+model ModuleUIReference {
+  id       String @id @default(cuid())
+  moduleId String
+
+  title       String
+  imageUrl    String
+  source      UIReferenceSource @default(SCREENSHOT)
+  description String?
+
+  createdAt DateTime @default(now())
+
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([moduleId])
+  @@map("module_ui_references")
 }
 
 model Task {

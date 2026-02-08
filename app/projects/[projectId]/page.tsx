@@ -125,7 +125,7 @@ export default async function ProjectPage({
         description={project.description ?? "No description"}
         leftContent={
           <Stack spacing={3} mt={3}>
-            <SimpleEditor projectId={projectId} editable={myRole === "OWNER"} />
+            <SimpleEditor scopeId={projectId} editable={myRole === "OWNER"} />
             {/* <ProductSpecEditor
               projectId={projectId}
               editable={myRole === "OWNER"} // contributor = read-only
@@ -136,7 +136,7 @@ export default async function ProjectPage({
               canEdit={myRole === "OWNER"}
             />
 
-            <UIReferences projectId={projectId} canEdit={myRole === "OWNER"} />
+            <UIReferences scopeId={projectId} canEdit={myRole === "OWNER"} />
           </Stack>
         }
         rightContent={

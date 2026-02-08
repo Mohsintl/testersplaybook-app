@@ -182,11 +182,13 @@ const MobileToolbarContent = ({
 );
 
 export function SimpleEditor({
-  projectId,
-  editable,
+  scopeId,
+  scopeType = "project",
+  editable = false,
 }: {
-  projectId: string;
-  editable: boolean;
+  scopeId?: string;
+  scopeType?: "project" | "module";
+  editable?: boolean;
 }) {
   const isMobile = useIsBreakpoint();
   const { height } = useWindowSize();
@@ -256,7 +258,8 @@ export function SimpleEditor({
     if (!editor) return;
 
     async function load() {
-      const res = await fetch(`/api/projects/${projectId}/specs`);
+      if (!scopeId) return;
+      const res = await fetch(`/api/${scopeType === "project" ? "projects" : "modules"}/${scopeId}/specs`);
       const json = await res.json();
 
       if (json?.data?.content && editor) {
@@ -266,7 +269,7 @@ export function SimpleEditor({
     }
 
     load();
-  }, [editor, projectId]);
+  }, [editor, scopeId, scopeType]);
 
   /* ---------------- AUTOSAVE (OWNER ONLY) ---------------- */
   useEffect(() => {
@@ -280,7 +283,8 @@ export function SimpleEditor({
       saveTimeout.current = setTimeout(async () => {
         setSaving(true);
 
-        await fetch(`/api/projects/${projectId}/specs`, {
+        if (!scopeId) return;
+        await fetch(`/api/${scopeType === "project" ? "projects" : "modules"}/${scopeId}/specs`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -297,7 +301,7 @@ export function SimpleEditor({
     return () => {
       editor.off("update", handler);
     };
-  }, [editor, editable, projectId]);
+  }, [editor, editable, scopeId, scopeType]);
 
   if (!editor) return null;
 

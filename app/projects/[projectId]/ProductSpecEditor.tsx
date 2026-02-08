@@ -7,10 +7,12 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { Box, Typography } from "@mui/material";
 
 export default function ProductSpecEditor({
-  projectId,
+  scopeId,
+  scopeType = "project",
   editable,
 }: {
-  projectId: string;
+  scopeId: string;
+  scopeType?: "project" | "module";
   editable: boolean;
 }) {
   const [saving, setSaving] = useState(false);
@@ -34,7 +36,7 @@ export default function ProductSpecEditor({
     if (!editor) return;
 
     async function load() {
-      const res = await fetch(`/api/projects/${projectId}/specs`);
+      const res = await fetch(`/api/${scopeType === "project" ? "projects" : "modules"}/${scopeId}/specs`);
       const json = await res.json();
 
       if (json?.data?.content && editor) {
@@ -44,7 +46,7 @@ export default function ProductSpecEditor({
     }
 
     load();
-  }, [editor, projectId]);
+  }, [editor, scopeId, scopeType]);
 
   /* ---------------- AUTOSAVE (OWNER ONLY) ---------------- */
   useEffect(() => {
@@ -58,7 +60,7 @@ export default function ProductSpecEditor({
       saveTimeout.current = setTimeout(async () => {
         setSaving(true);
 
-        await fetch(`/api/projects/${projectId}/specs`, {
+        await fetch(`/api/${scopeType === "project" ? "projects" : "modules"}/${scopeId}/specs`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -75,7 +77,7 @@ export default function ProductSpecEditor({
     return () => {
       editor.off("update", handler);
     };
-  }, [editor, editable, projectId]);
+  }, [editor, editable, scopeId, scopeType]);
 
   if (!editor) return null;
 

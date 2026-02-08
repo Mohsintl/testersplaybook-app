@@ -15,6 +15,8 @@ import ProjectLayout from "../../../components/ProjectLayout";
 import ModuleBehaviorClient from "./ModuleBehaviorClient";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import UIReferences from "../../UIReferences";
+import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
 
 export default async function ModulePage({
   params,
@@ -64,26 +66,40 @@ export default async function ModulePage({
       title={module.name}
       description={`Project: ${module.project.name}`}
       leftContent={
-        <div>
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Test Cases
-          </Typography>
-          {module.testCases.length === 0 ? (
-            <Typography>No test cases yet.</Typography>
-          ) : (
-            <Stack spacing={1}>
-              {module.testCases.map((tc) => (
-                <a
-                  key={tc.id}
-                  href={`/projects/${projectId}/modules/${moduleId}/test-cases/${tc.id}`}
-                  style={{ textDecoration: "none", color: "inherit" }}
-                >
-                  {tc.title}
-                </a>
-              ))}
-            </Stack>
-          )}
-        </div>
+        <Stack spacing={3}>
+          <SimpleEditor
+            scopeId={moduleId}
+            scopeType="module"
+            editable={myRole === "OWNER"}
+          />
+
+          <UIReferences
+            scopeId={moduleId}
+            scopeType="module"
+            canEdit={myRole === "OWNER"}
+          />
+
+          <div>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Test Cases
+            </Typography>
+            {module.testCases.length === 0 ? (
+              <Typography>No test cases yet.</Typography>
+            ) : (
+              <Stack spacing={1}>
+                {module.testCases.map((tc) => (
+                  <a
+                    key={tc.id}
+                    href={`/projects/${projectId}/modules/${moduleId}/test-cases/${tc.id}`}
+                    style={{ textDecoration: "none", color: "inherit" }}
+                  >
+                    {tc.title}
+                  </a>
+                ))}
+              </Stack>
+            )}
+          </div>
+        </Stack>
       }
       rightContent={
         <div>
