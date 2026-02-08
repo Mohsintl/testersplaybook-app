@@ -80,7 +80,7 @@ export default function ModuleList({
     <>
       <Stack spacing={1} sx={{ mt: 2 }}>
         <Typography fontSize={18} fontWeight={600}>
-          Modules
+          Modules / Features
         </Typography>
         {canCreate && (
           <CreateModuleForm projectId={projectId} canCreate={canCreate} />
