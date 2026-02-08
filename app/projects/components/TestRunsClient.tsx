@@ -59,6 +59,7 @@ export default function TestRunsClient({
   const [tempSetup, setTempSetup] = useState<any>(setup);
   const [setupModalOpen, setSetupModalOpen] = useState(false);
   const canManageRuns = currentUserRole === "OWNER";
+  const assignedCount = runs.filter((run) => run.assignedToId === currentUserId).length;
 
   // We manage `tempSetup` at the parent level and render the form inline
   // to avoid remounting issues that reset input state.
@@ -323,6 +324,11 @@ export default function TestRunsClient({
           );
         })}
       </ul>
+      {!canManageRuns && assignedCount === 0 && (
+        <p style={{ color: "gray", marginTop: 8 }}>
+          No test runs assigned to you yet.
+        </p>
+      )}
 
 
       {canManageRuns && (
