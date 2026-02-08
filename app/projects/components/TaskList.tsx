@@ -147,13 +147,13 @@ export default function TaskList({
                     />
                   )}
 
-                  {task.dueDate && (
-                    <Chip
-                      label={`Due: ${new Date(task.dueDate).toLocaleDateString()}`}
-                      size="small"
-                      color="warning"
-                    />
-                  )}
+                {task.dueDate && (
+                  <Chip
+                    label={`Due: ${new Date(task.dueDate).toLocaleDateString("en-US")}`}
+                    size="small"
+                    color="warning"
+                  />
+                )}
                 </Stack>
               </Stack>
             </CardContent>
