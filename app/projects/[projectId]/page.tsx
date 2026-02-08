@@ -141,10 +141,6 @@ export default async function ProjectPage({
         }
         rightContent={
           <div>
-            <CreateModuleForm
-              projectId={projectId}
-              canCreate={myRole === "OWNER"}
-            />
             <TaskList
               tasks={tasks}
               currentUserId={session.user.id}
@@ -168,6 +164,8 @@ export default async function ProjectPage({
             modules={project.modules}
             projectId={projectId}
             canDelete={myRole === "OWNER"}
+            currentUserRole={myRole ?? "CONTRIBUTOR"}
+            canCreate={myRole === "OWNER"}
           />
         }
       />
