@@ -17,7 +17,6 @@ import InviteMember from "../components/InviteMember";
 import UIReferences from "./UIReferences";
 import { Stack } from "@mui/material";
 import ProductSpecEditor from "./ProductSpecEditor";
-import ProjectTasksSection from "./ProjectTaskSection";
 import TaskList from "../components/TaskList";
 
 
@@ -146,12 +145,14 @@ export default async function ProjectPage({
               projectId={projectId}
               canCreate={myRole === "OWNER"}
             />
-            <ProjectTasksSection
+            <TaskList
+              tasks={tasks}
+              currentUserId={session.user.id}
+              currentUserRole={myRole ?? "CONTRIBUTOR"}
               projectId={projectId}
               members={projectMembers}
               canCreate={myRole === "OWNER"}
             />
-            <TaskList  tasks={tasks} />
             <TestRunsClient
               projectId={projectId}
               initialRuns={formattedTestRuns} // Use the formatted test runs
